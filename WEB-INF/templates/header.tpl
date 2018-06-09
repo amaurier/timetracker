@@ -33,30 +33,33 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
 {if $authenticated}
   {if $user->can('administer_site')}
       <!-- top menu for admin -->
-      <table cellspacing="0" cellpadding="3" width="100%" border="0">
-        <tr>
-          <td class="systemMenu" height="17" align="center">&nbsp;
-            <a class="systemMenu" href="logout.php">{$i18n.menu.logout}</a> &middot;
-            <a class="systemMenu" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a> &middot;
-            <a class="systemMenu" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
-          </td>
-        </tr>
-      </table>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="logout.php">{$i18n.menu.logout}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
+          </li>
+        </ul>
       <!-- end of top menu for admin -->
 
       <!-- sub menu for admin -->
-      <table cellspacing="0" cellpadding="3" width="100%" border="0">
-        <tr>
-          <td align="center" bgcolor="#d9d9d9" nowrap height="17" background="images/subm_bg.gif">&nbsp;
-            <a class="mainMenu" href="admin_groups.php">{$i18n.menu.groups}</a> &middot;
-            <a class="mainMenu" href="admin_options.php">{$i18n.menu.options}</a>
-          </td>
-        </tr>
-      </table>
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="admin_groups.php">{$i18n.menu.groups}</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="admin_options.php">{$i18n.menu.options}</a>
+        </li>
+      </ul>
       <!-- end of sub menu for admin -->
   {else}
       <!-- top menu for authorized user -->
@@ -119,7 +122,6 @@
   {/if}
 {else}
   <!-- top menu for non authorized user -->
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav">
       <li class="nav-item">
         <a class="nav-link" href="login.php">{$i18n.menu.login}</a>
@@ -136,9 +138,9 @@
         <a class="nav-link" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
       </li>
     </ul>
-  </div>
 
 {/if}
+  </div>
 </nav>
 
       <!-- page title and user details -->
