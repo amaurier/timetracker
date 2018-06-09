@@ -6,16 +6,14 @@ function get_date() {
 }
 //-->
 </script>
-<table cellspacing="4" cellpadding="7" border="0">
-  <tr>
-    <td>
-      {$forms.loginForm.open}
-      {include file="login.`$smarty.const.AUTH_MODULE`.tpl"}
-      {$forms.loginForm.close}
-    </td>
-  </tr>
-</table>
 
-{if !empty($about_text)}
-  <div id="LoginAboutText"> {$about_text} </div>
-{/if}
+<div class="row">
+  <div class="col-md-4 offset-md-4">
+    {$forms.loginForm.open}
+    {include file="login.`$smarty.const.AUTH_MODULE`.tpl"}
+    {$forms.loginForm.close}
+    {if !empty($about_text)}
+      <em>{$about_text}</em>
+    {/if}
+  </div>
+</div>

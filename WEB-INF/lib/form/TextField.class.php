@@ -42,7 +42,7 @@ class TextField extends FormElement {
 
   function getHtml() {
     if (empty($this->id)) $this->id = $this->name;
-    $html = "\n\t<input type=\"text\"";
+    $html = "\n\t<input type=\"text\" class=\"form-control\"";
     $html .= " id=\"$this->id\" name=\"$this->name\"";
     if (!empty($this->size)) $html .= " size=\"$this->size\"";
     if (!empty($this->style)) $html .= " style=\"$this->style\"";

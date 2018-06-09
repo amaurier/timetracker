@@ -39,7 +39,7 @@ class PasswordField extends FormElement {
   function getHtml() {
     if ($this->id == '') $this->id = $this->name;
 
-    $html = "\n\t<input type=\"password\"";
+    $html = "\n\t<input type=\"password\" class=\"form-control\"";
     $html.= ' id="'.$this->id.'"';
     $html.= ' name="'.$this->name.'"';
 
