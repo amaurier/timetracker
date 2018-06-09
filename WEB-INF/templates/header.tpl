@@ -138,10 +138,8 @@
     </ul>
   </div>
 
-</nav>
-
-
 {/if}
+</nav>
 
       <!-- page title and user details -->
 {if $title}
