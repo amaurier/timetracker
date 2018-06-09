@@ -2,8 +2,10 @@
 
 <footer class="container">
   <div class="row">
-    <div class="col-sm-12 text-center" style="background-color:#eeeeee">
-      <a href="https://www.anuko.com/lp/tt_8.htm" target="_blank">{$i18n.footer.contribute_msg}</a>
+    <div class="col-sm-12 text-center">
+      <div style="background-color:#eeeeee">
+        <a href="https://www.anuko.com/lp/tt_8.htm" target="_blank">{$i18n.footer.contribute_msg}</a>
+      </div>
     </div>
   </div>
   <div class="row">

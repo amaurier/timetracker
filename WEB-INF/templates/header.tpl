@@ -20,9 +20,9 @@
 <body {$onload}>
 
 {assign var="tab_width" value="700"}
-<div class="container">
 
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     {if $user->custom_logo}
       <a class="navbar-brand" href="#"><img alt="Time Tracker" width="300" height="43" src="{$custom_logo}" border="0"></a>
     {else}
@@ -37,22 +37,8 @@
 
 {if $authenticated}
   {if $user->can('administer_site')}
-      <!-- top menu for admin -->
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="logout.php">{$i18n.menu.logout}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
-          </li>
-        </ul>
-      <!-- end of top menu for admin -->
-
       <!-- sub menu for admin -->
-      <ul class="navbar-nav">
+      <ul class="navbar-nav mr-auto">
         <li class="nav-item">
           <a class="nav-link" href="admin_groups.php">{$i18n.menu.groups}</a>
         </li>
@@ -61,6 +47,20 @@
         </li>
       </ul>
       <!-- end of sub menu for admin -->
+      <!-- top menu for admin -->
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {$user->name|escape} - {$user->role_name|escape}{if $user->behalf_id > 0} <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>{/if}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <a class="dropdown-item" href="logout.php">{$i18n.menu.logout}</a>
+              <a class="dropdown-item" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a>
+              <a class="dropdown-item" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
+            </div>
+          </li>
+        </ul>
+      <!-- end of top menu for admin -->
   {else}
       <!-- top menu for authorized user -->
       <table cellspacing="0" cellpadding="3" width="100%" border="0">
@@ -122,7 +122,7 @@
   {/if}
 {else}
   <!-- top menu for non authorized user -->
-    <ul class="navbar-nav">
+    <ul class="navbar-nav mr-auto">
       <li class="nav-item">
         <a class="nav-link" href="login.php">{$i18n.menu.login}</a>
       </li>
@@ -131,6 +131,8 @@
           <a class="nav-link" href="register.php">{$i18n.menu.create_group}</a>
         </li>
       {/if}
+    </ul>
+    <ul class="navbar-nav">
       <li class="nav-item">
         <a class="nav-link" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a>
       </li>
@@ -143,13 +145,18 @@
   </div>
 </nav>
 
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12">
       <!-- page title and user details -->
 {if $title}
-      <h1>{$title}{if $timestring}: {$timestring}{/if}</h1>
+      <div class="pb-2 mt-4 mb-4 border-bottom"><h1>{$title}{if $timestring}: {$timestring}{/if}</h1></div>
   {if $user->name}
         <h2>{$user->name|escape} - {$user->role_name|escape}{if $user->behalf_id > 0} <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>{/if}{if $user->group}, {$user->group|escape}{/if}</h2>
   {/if}
 {/if}
+    </div>
+  </div>
       <!-- end of page title and user details -->
 
       <!-- output errors -->
