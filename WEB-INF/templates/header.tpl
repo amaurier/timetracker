@@ -48,9 +48,25 @@
       <ul class="navbar-nav">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            {$user->name|escape} - {$user->role_name|escape}{if $user->behalf_id > 0} <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>{/if}
+            {if $user->name}
+                {$user->name|escape}
+            {/if}
           </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+            <span class="dropdown-item-text">
+              {$user->role_name|escape}
+            </span>
+            {if $user->behalf_id > 0}
+              <span class="dropdown-item-text">
+                <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>
+              </span>
+            {/if}
+            {if $user->group}
+              <span class="dropdown-item-text">
+                {$user->group|escape}
+              </span>
+            {/if}
+            <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="logout.php">{$i18n.menu.logout}</a>
             <a class="dropdown-item" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a>
             <a class="dropdown-item" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
@@ -98,9 +114,25 @@
       <ul class="navbar-nav">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            {$user->name|escape} - {$user->role_name|escape}{if $user->behalf_id > 0} <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>{/if}
+            {if $user->name}
+                {$user->name|escape}
+            {/if}
           </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+            <span class="dropdown-item-text">
+              {$user->role_name|escape}
+            </span>
+            {if $user->behalf_id > 0}
+              <span class="dropdown-item-text">
+                <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>
+              </span>
+            {/if}
+            {if $user->group}
+              <span class="dropdown-item-text">
+                {$user->group|escape}
+              </span>
+            {/if}
+            <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="logout.php">{$i18n.menu.logout}</a>
             {if $user->can('manage_own_settings')}
                 <a class="dropdown-item" href="profile_edit.php">{$i18n.menu.profile}</a>
@@ -144,10 +176,10 @@
     <div class="col-sm-12">
       <!-- page title and user details -->
 {if $title}
-      <div class="pb-2 mt-4 mb-4 border-bottom"><h1>{$title}{if $timestring}: {$timestring}{/if}</h1></div>
-  {if $user->name}
-        <h2>{$user->name|escape} - {$user->role_name|escape}{if $user->behalf_id > 0} <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>{/if}{if $user->group}, {$user->group|escape}{/if}</h2>
-  {/if}
+      <div class="pb-2 mt-4 mb-4 border-bottom">
+        <h1>{$title}{if $timestring}: {$timestring}{/if}</h1>
+      </div>
+
 {/if}
     </div>
   </div>
