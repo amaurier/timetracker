@@ -1,51 +1,46 @@
 {$forms.groupForm.open}
-<table cellspacing="4" cellpadding="7" border="0">
-  <tr>
-    <td>
-      <table cellspacing="1" cellpadding="2" border="0">
-        <tr>
-          <td align="right" nowrap>{$i18n.label.group_name}:</td>
-          <td>{$forms.groupForm.group_name.control}</td>
-        </tr>
-        <tr>
-          <td align="right">{$i18n.label.currency}:</td>
-          <td>{$forms.groupForm.currency.control}</td>
-        </tr>
-        <tr>
-           <td align="right" nowrap>{$i18n.label.language}:</td>
-           <td>{$forms.groupForm.lang.control}</td>
-        </tr>
-        <tr><td>&nbsp;</td></tr>
-        <tr>
-          <td align="right" nowrap>{$i18n.label.manager_name} (*):</td>
-          <td>{$forms.groupForm.manager_name.control}</td>
-        </tr>
-        <tr>
-          <td align="right" nowrap>{$i18n.label.manager_login} (*):</td>
-          <td>{$forms.groupForm.manager_login.control}</td>
-        </tr>
-        <tr>
-          <td align="right" nowrap>{$i18n.label.password} (*):</td>
-          <td>{$forms.groupForm.password1.control}</td>
-        </tr>
-        <tr>
-          <td align="right" nowrap>{$i18n.label.confirm_password} (*):</td>
-          <td>{$forms.groupForm.password2.control}</td>
-        </tr>
-        <tr>
-          <td align="right" nowrap>{$i18n.label.email}:</td>
-          <td>{$forms.groupForm.manager_email.control}</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>{$i18n.label.required_fields}</td>
-        </tr>
-        <tr><td colspan="2">&nbsp;</td></tr>
-        <tr>
-          <td colspan="2" height="50" align="center">{$forms.groupForm.btn_submit.control}</td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
+<div class="form-row">
+  <div class="form-group col-md-6">
+    <label>{$i18n.label.group_name}</label>
+    {$forms.groupForm.group_name.control}
+  </div>
+  <div class="form-group col-md-2">
+    <label>{$i18n.label.currency}</label>
+    {$forms.groupForm.currency.control}
+  </div>
+  <div class="form-group col-md-4">
+    <label>{$i18n.label.language}</label>
+    {$forms.groupForm.lang.control}
+  </div>
+</div>
+<div class="form-row">
+  <div class="form-group col-md-6">
+    <label>{$i18n.label.manager_name} (*)</label>
+    {$forms.groupForm.manager_name.control}
+  </div>
+  <div class="form-group col-md-6">
+    <label>{$i18n.label.manager_login} (*)</label>
+    {$forms.groupForm.manager_login.control}
+  </div>
+</div>
+<div class="form-row">
+  <div class="form-group col-md-6">
+    <label>{$i18n.label.password} (*)</label>
+    {$forms.groupForm.password1.control}
+  </div>
+  <div class="form-group col-md-6">
+    <label>{$i18n.label.confirm_password} (*)</label>
+    {$forms.groupForm.password2.control}
+  </div>
+</div>
+<div class="form-group">
+  <label>{$i18n.label.email}</label>
+  {$forms.groupForm.manager_email.control}
+</div>
+<div>
+  {$i18n.label.required_fields}
+</div>
+<div>
+  {$forms.groupForm.btn_submit.control}
+</div>
 {$forms.groupForm.close}

@@ -54,8 +54,8 @@ if ($request->isPost()) {
 }
 
 $form = new Form('groupForm');
-$form->addInput(array('type'=>'text','maxlength'=>'200','name'=>'group_name','value'=>$cl_group_name));
-$form->addInput(array('type'=>'text','maxlength'=>'7','name'=>'currency','value'=>$cl_currency));
+$form->addInput(array('type'=>'text','maxlength'=>'200','name'=>'group_name','value'=>$cl_group_name,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'text','maxlength'=>'7','name'=>'currency','value'=>$cl_currency,'cssClass'=>'form-control'));
 
 // Prepare an array of available languages.
 $lang_files = I18n::getLangFileList();
@@ -73,14 +73,14 @@ foreach ($lang_files as $lfile) {
   $longname_lang[] = array('id'=>I18n::getLangFromFilename($lfile),'name'=>$lname);
 }
 $longname_lang = mu_sort($longname_lang, 'name');
-$form->addInput(array('type'=>'combobox','name'=>'lang','style'=>'width: 200px','data'=>$longname_lang,'datakeys'=>array('id','name'),'value'=>$cl_lang));
+$form->addInput(array('type'=>'combobox','name'=>'lang','data'=>$longname_lang,'datakeys'=>array('id','name'),'value'=>$cl_lang,'cssClass'=>'form-control'));
 
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_name','value'=>$cl_manager_name));
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_login','value'=>$cl_manager_login));
-$form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password1','value'=>$cl_password1));
-$form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password2','value'=>$cl_password2));
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_email','value'=>$cl_manager_email));
-$form->addInput(array('type'=>'submit','name'=>'btn_submit','value'=>$i18n->get('button.submit')));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_name','value'=>$cl_manager_name,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_login','value'=>$cl_manager_login,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password1','value'=>$cl_password1,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password2','value'=>$cl_password2,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_email','value'=>$cl_manager_email,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'submit','name'=>'btn_submit','value'=>$i18n->get('button.submit'),'cssClass'=>'btn btn-primary btn-block'));
 
 if ($request->isPost()) {
   // Create fields array for ttRegistrator instance.
