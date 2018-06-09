@@ -2,31 +2,33 @@
   function chLocation(newLocation) { document.location = newLocation; }
 </script>
 
-<table cellspacing="0" cellpadding="7" border="0" width="720">
-  <tr><td valign="top">{$i18n.form.groups.hint}</td></tr>
-</table>
+<div class="alert alert-info">{$i18n.form.groups.hint}</div>
 
-<table cellspacing="1" cellpadding="3" border="0" width="720">
-  <tr>
-    <td width="3%" class="tableHeader">{$i18n.label.id}</td>
-    <td width="70%" class="tableHeader">{$i18n.label.thing_name}</td>
-    <td class="tableHeader">{$i18n.label.date}</td>
-    <td class="tableHeader">{$i18n.label.language}</td>
-    <td class="tableHeader">{$i18n.label.edit}</td>
-    <td class="tableHeader">{$i18n.label.delete}</td>
-  </tr>
-{if $groups}
-  {foreach $groups as $group}
-  <tr bgcolor="{cycle values="#f5f5f5,#ffffff"}">
-    <td>{$group.id}</td>
-    <td>{$group.name|escape}</td>
-    <td nowrap>{$group.date}</td>
-    <td align="center">{$group.lang}</td>
-    <td><a href="admin_group_edit.php?id={$group.id}">{$i18n.label.edit}</a></td>
-    <td><a href="admin_group_delete.php?id={$group.id}">{$i18n.label.delete}</a></td>
-  </tr>
-  {/foreach}
-{/if}
+<table class="table table-striped table-borderless table-hover table-responsive-sm">
+  <thead class="thead-dark">
+    <tr>
+      <th>{$i18n.label.id}</th>
+      <th>{$i18n.label.thing_name}</th>
+      <th>{$i18n.label.date}</th>
+      <th>{$i18n.label.language}</th>
+      <th>{$i18n.label.edit}</th>
+      <th>{$i18n.label.delete}</th>
+    </tr>
+  </thead>
+  {if $groups}
+    <tbody>
+      {foreach $groups as $group}
+      <tr>
+        <td>{$group.id}</td>
+        <td>{$group.name|escape}</td>
+        <td>{$group.date}</td>
+        <td>{$group.lang}</td>
+        <td><a href="admin_group_edit.php?id={$group.id}">{$i18n.label.edit}</a></td>
+        <td><a href="admin_group_delete.php?id={$group.id}">{$i18n.label.delete}</a></td>
+      </tr>
+      {/foreach}
+    </tbody>
+  {/if}
 </table>
 
 <table width="100%">
