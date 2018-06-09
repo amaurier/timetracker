@@ -104,7 +104,7 @@ class Form {
 			    if (isset($params["datakeys"])) $el->setDataKeys($params["datakeys"]);
 			    $el->setData(@$params["data"]);
 			    break;
-			    
+
 			case "combobox":
 			    import('form.Combobox');
 			    $el = new Combobox($params["name"]);
@@ -121,15 +121,15 @@ class Form {
 			    import('form.Calendar');
 			    $el = new Calendar($params["name"]);
 			    $el->setHighlight(@$params["highlight"]);
-			    break;  
-			    
+			    break;
+
 			case "table":
 			    import('form.Table');
 			    $el = new Table($params["name"]);
 			    $el->setData(@$params["data"]);
 			    $el->setWidth(@$params["width"]);
 			    break;
-			    
+
 			case "upload":
 			    import('form.UploadFile');
 			    $el = new UploadFile($params["name"]);
@@ -141,35 +141,37 @@ class Form {
 			if (isset($params["id"])) $el->setId($params["id"]);
 			$el->localize();
 			if (isset($params["enable"])) $el->setEnabled($params["enable"]);
-			
+
 			if (isset($params["style"])) $el->setStyle($params["style"]);
 			if (isset($params["size"])) $el->setSize($params["size"]);
-			
+
 			if (isset($params["label"])) $el->setLabel($params["label"]);
 			if (isset($params["value"])) $el->setValue($params["value"]);
-			
+
 			if (isset($params["onchange"])) $el->setOnChange($params["onchange"]);
 			if (isset($params["onclick"])) $el->setOnClick($params["onclick"]);
-			
+
+      if (isset($params["cssClass"])) $el->setCssClass($params["cssClass"]);
+
 			$this->elements[$params["name"]] = &$el;
 		}
 	}
-	
+
 	function addInputElement(&$el) {
 		if ($el && is_object($el)) {
 			$el->localize();
-		
+
 			$el->setFormName($this->name);
 			$this->elements[$el->name] = &$el;
 		}
 	}
-	
-	
+
+
 	function toStringOpenTag() {
         $html = "<form name=\"$this->name\"";
-        
+
         $html .= ' method="post"';
-        
+
         // Add enctype for file upload forms.
         foreach ($this->elements as $elname=>$el) {
             if (strtolower(get_class($this->elements[$elname])) == 'uploadfile') {
@@ -181,7 +183,7 @@ class Form {
         $html .= ">";
         return $html;
     }
-    
+
     function toStringCloseTag() {
     	$html = "\n";
     	foreach ($this->elements as $elname=>$el) {
@@ -192,24 +194,24 @@ class Form {
         $html .= "</form>";
         return $html;
     }
-	
+
 	function toArray() {
         $vars = array();
         $vars['open'] = $this->toStringOpenTag();
         $vars['close'] = $this->toStringCloseTag();
-        
+
         foreach ($this->elements as $elname=>$el) {
-            if (is_object($this->elements[$elname])) 
+            if (is_object($this->elements[$elname]))
                 $vars[$elname] = $this->elements[$elname]->toArray();
         }
 //print_r($vars);
         return $vars;
     }
-    
+
     function getValueByElement($elname) {
     	return $this->elements[$elname]->getValue();
     }
-    
+
     function setValueByElement($elname, $value) {
     	if (isset($this->elements[$elname])) {
     		$this->elements[$elname]->setValue($value);

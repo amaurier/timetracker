@@ -40,7 +40,7 @@ class Submit extends FormElement {
       $this->id = $this->name;
 
     // Output HTML.
-    $html = "\n\t<input type=\"submit\" class=\"btn btn-primary\" name=\"$this->name\" id=\"$this->id\"";
+    $html = "\n\t<input type=\"submit\" name=\"$this->name\" id=\"$this->id\"";
     $html .= " value=\"$this->value\"";
     if ($this->on_click) $html .= " onclick=\"".$this->on_click."\"";
     if ($this->cssClass) $html .= " class=\"".$this->cssClass."\"";

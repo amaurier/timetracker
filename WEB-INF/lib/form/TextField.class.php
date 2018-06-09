@@ -42,11 +42,12 @@ class TextField extends FormElement {
 
   function getHtml() {
     if (empty($this->id)) $this->id = $this->name;
-    $html = "\n\t<input type=\"text\" class=\"form-control\"";
+    $html = "\n\t<input type=\"text\"";
     $html .= " id=\"$this->id\" name=\"$this->name\"";
     if (!empty($this->size)) $html .= " size=\"$this->size\"";
     if (!empty($this->style)) $html .= " style=\"$this->style\"";
     if (!empty($this->title)) $html .= " title=\"$this->title\"";
+    if (!empty($this->cssClass)) $html .= " class=\"$this->cssClass\"";
 
     if($this->isEnabled()) {
       if (!empty($this->max_length)) $html .= " maxlength=\"$this->max_length\"";
