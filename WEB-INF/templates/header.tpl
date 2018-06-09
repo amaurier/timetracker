@@ -7,6 +7,7 @@
 {if $i18n.language.rtl}
   <link href="{$smarty.const.RTL_CSS}" rel="stylesheet" type="text/css">
 {/if}
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
   <title>Time Tracker{if $title} - {$title}{/if}</title>
   <script src="js/strftime.js"></script>
   <script>
@@ -16,42 +17,22 @@
   <script src="js/strptime.js"></script>
 </head>
 
-<body leftmargin="0" topmargin="0" marginheight="0" marginwidth="0" {$onload}>
+<body {$onload}>
 
 {assign var="tab_width" value="700"}
+<div class="container">
 
-<table height="100%" cellspacing="0" cellpadding="0" width="100%" border="0">
-  <tr>
-    <td valign="top" align="center"> <!-- This is to centrally align all our content. -->
-
-      <!-- top image -->
-      <table cellspacing="0" cellpadding="0" width="100%" border="0">
-        <tr>
-{if $user->custom_logo}
-          <td align="center">
-{else}
-          <td bgcolor="#a6ccf7" background="images/top_bg.gif" align="center">
-{/if}
-            <table cellspacing="0" cellpadding="0" width="{$tab_width}" border="0">
-              <tr>
-                <td valign="top">
-                  <table cellspacing="0" cellpadding="0" width="100%" border="0">
-                    <tr><td height="6" colspan="2"><img width="1" height="6" src="images/1x1.gif" border="0"></td></tr>
-                    <tr valign="top">
-{if $user->custom_logo}
-                      <td height="55" align="center"><img alt="Time Tracker" width="300" height="43" src="{$custom_logo}" border="0"></a></td>
-{else}
-                      <td height="55" align="center"><a href="https://www.anuko.com/lp/tt_1.htm" target="_blank"><img alt="Anuko Time Tracker" width="300" height="43" src="images/tt_logo.png" border="0"></a></td>
-{/if}
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-      <!-- end of top image -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    {if $user->custom_logo}
+      <a class="navbar-brand" href="#"><img alt="Time Tracker" width="300" height="43" src="{$custom_logo}" border="0"></a>
+    {else}
+      <a class="navbar-brand" href="https://www.anuko.com/lp/tt_1.htm" target="_blank">
+      <img alt="Anuko Time Tracker" width="auto" height="24" src="images/tt_logo.png" border="0">
+      </a>
+    {/if}
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
 {if $authenticated}
   {if $user->can('administer_site')}
@@ -107,8 +88,8 @@
             &middot; <a class="mainMenu" href="expenses.php">{$i18n.menu.expenses}</a>
     {/if}
     {if $user->can('view_own_reports') || $user->can('view_reports')}
-            &middot; <a class="mainMenu" href="reports.php">{$i18n.menu.reports}</a> 
-    {/if}        
+            &middot; <a class="mainMenu" href="reports.php">{$i18n.menu.reports}</a>
+    {/if}
     {if $user->isPluginEnabled('iv') && ($user->can('view_own_invoices') || $user->can('manage_invoices'))}
             &middot; <a class="mainMenu" href="invoices.php">{$i18n.title.invoices}</a>
     {/if}
@@ -137,59 +118,52 @@
       <!-- end of sub menu for authorized user -->
   {/if}
 {else}
-      <!-- top menu for non authorized user -->
-      <table cellspacing="0" cellpadding="3" width="100%" border="0">
-        <tr>
-          <td class="systemMenu" height="17" align="center">&nbsp;
-            <a class="systemMenu" href="login.php">{$i18n.menu.login}</a> &middot;
-  {if isTrue($smarty.const.MULTITEAM_MODE) && $smarty.const.AUTH_MODULE == 'db'}
-            <a class="systemMenu" href="register.php">{$i18n.menu.create_group}</a> &middot;
-  {/if}
-            <a class="systemMenu" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a> &middot;
-            <a class="systemMenu" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
-          </td>
-        </tr>
-      </table>
+  <!-- top menu for non authorized user -->
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="login.php">{$i18n.menu.login}</a>
+      </li>
+      {if isTrue($smarty.const.MULTITEAM_MODE) && $smarty.const.AUTH_MODULE == 'db'}
+        <li class="nav-item">
+          <a class="nav-link" href="register.php">{$i18n.menu.create_group}</a>
+        </li>
+      {/if}
+      <li class="nav-item">
+        <a class="nav-link" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
+      </li>
+    </ul>
+  </div>
+
+</nav>
+
+
 {/if}
-      <br>
 
       <!-- page title and user details -->
 {if $title}
-      <table cellspacing="0" cellpadding="5" width="{$tab_width+20}" border="0">
-        <tr><td class="sectionHeader"><div class="pageTitle">{$title}{if $timestring}: {$timestring}{/if}</div></td></tr>
+      <h1>{$title}{if $timestring}: {$timestring}{/if}</h1>
   {if $user->name}
-        <tr><td>{$user->name|escape} - {$user->role_name|escape}{if $user->behalf_id > 0} <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>{/if}{if $user->group}, {$user->group|escape}{/if}</td></tr>
-  {else}
-        <tr><td>&nbsp;</td></tr>
+        <h2>{$user->name|escape} - {$user->role_name|escape}{if $user->behalf_id > 0} <b>{$i18n.label.on_behalf} {$user->behalf_name|escape}</b>{/if}{if $user->group}, {$user->group|escape}{/if}</h2>
   {/if}
-      </table>
 {/if}
       <!-- end of page title and user details -->
 
       <!-- output errors -->
 {if $err->yes()}
-      <table cellspacing="4" cellpadding="7" width="{$tab_width}" border="0">
-        <tr>
-          <td class="error">
   {foreach $err->getErrors() as $error}
-            {$error.message}<br> {* No need to escape as they are not coming from user and may contain a link. *}
+            <div class="alert alert-danger">{$error.message}</div> {* No need to escape as they are not coming from user and may contain a link. *}
   {/foreach}
-          </td>
-        </tr>
-      </table>
 {/if}
       <!-- end of output errors -->
 
       <!-- output messages -->
 {if $msg->yes()}
-      <table cellspacing="4" cellpadding="7" width="{$tab_width}" border="0">
-        <tr>
-          <td class="info_message">
   {foreach $msg->getErrors() as $message}
-            {$message.message}<br> {* No need to escape. *}
+            <div class="alert alert-info">{$message.message}</div> {* No need to escape. *}
   {/foreach}
-          </td>
-        </tr>
-      </table>
 {/if}
       <!-- end of output messages -->
