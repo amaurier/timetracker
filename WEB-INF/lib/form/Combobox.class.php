@@ -27,7 +27,7 @@
 // +----------------------------------------------------------------------+
 
 import('form.FormElement');
-	
+
 //  name        CDATA          #IMPLIED  -- field name --
 //  size        NUMBER         #IMPLIED  -- rows visible --
 //  multiple    (multiple)     #IMPLIED  -- default is single selection --
@@ -52,40 +52,43 @@ class Combobox extends FormElement {
 
 	function setMultiple($value)	{ $this->mMultiple = $value; }
 	function isMultiple() { return $this->mMultiple; }
-	
+
 	function setData($value)	{ $this->mOptions = $value; }
 	function getData() { return $this->mOptions; }
-	
+
 	function setDataDefault($value)	{ $this->mOptionsEmpty = $value; }
 	function getDataDefault() { return $this->mOptionsEmpty; }
-	
+
 	function setDataKeys($keys)	{ $this->mDataKeys = $keys; $this->mDataDeep = 2; }
 	function getDataKeys() { return $this->mDataKeys; }
-	
-	
+
+
 	function getHtml() {
 
 	    if ($this->id=="") $this->id = $this->name;
-	    
+
 		$html = "\n\t<select";
 		$html .= " name=\"$this->name\" id=\"$this->id\"";
-		
+
 		if ($this->size!="")
 		  $html .= " size=\"$this->size\"";
-		 
+
 		if ($this->mMultiple)
 		  $html .= " multiple";
 
 		if ($this->on_change!="")
 		   $html .= " onchange=\"$this->on_change\"";
-		   
+
+		if ($this->cssClass!="")
+	 	   $html .= " class=\"$this->cssClass\"";
+
 		if ($this->style!="")
 		   $html .= " style=\"$this->style\"";
-                
+
                 if (!$this->isEnabled())
 		   $html .= " disabled";
-		   
-		$html .= ">\n";   
+
+		$html .= ">\n";
 		if (is_array($this->mOptionsEmpty) && (count($this->mOptionsEmpty) > 0))
 		foreach ($this->mOptionsEmpty as $key=>$value) {
 			$html .= "<option value=\"".$key."\"";
@@ -103,9 +106,9 @@ class Combobox extends FormElement {
 			if (($this->value == $key) && ($this->value != '')) $html .= " selected";
 			$html .= ">".htmlspecialchars($value)."</option>\n";
 		}
-		
+
 		$html .= "</select>";
-		
+
 		return $html;
 	}
 }
