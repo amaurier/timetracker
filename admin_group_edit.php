@@ -63,17 +63,17 @@ if ($request->isPost()) {
 }
 
 $form = new Form('groupForm');
-$form->addInput(array('type'=>'text','maxlength'=>'80','name'=>'group_name','value'=>$cl_group_name));
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_name','value'=>$cl_manager_name));
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_login','value'=>$cl_manager_login));
+$form->addInput(array('type'=>'text','maxlength'=>'80','name'=>'group_name','value'=>$cl_group_name,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_name','value'=>$cl_manager_name,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_login','value'=>$cl_manager_login,'cssClass'=>'form-control'));
 if (!$auth->isPasswordExternal()) {
-  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password1','value'=>$cl_password1));
-  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password2','value'=>$cl_password2));
+  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password1','value'=>$cl_password1,'cssClass'=>'form-control'));
+  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password2','value'=>$cl_password2,'cssClass'=>'form-control'));
 }
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_email','value'=>$cl_manager_email));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'manager_email','value'=>$cl_manager_email,'cssClass'=>'form-control'));
 $form->addInput(array('type'=>'hidden','name'=>'id','value'=>$group_id));
-$form->addInput(array('type'=>'submit','name'=>'btn_save','value'=>$i18n->get('button.save')));
-$form->addInput(array('type'=>'submit','name'=>'btn_cancel','value'=>$i18n->get('button.cancel')));
+$form->addInput(array('type'=>'submit','name'=>'btn_save','value'=>$i18n->get('button.save'),'cssClass'=>'btn btn-primary'));
+$form->addInput(array('type'=>'submit','name'=>'btn_cancel','value'=>$i18n->get('button.cancel'),'cssClass'=>'btn btn-outline-primary'));
 
 if ($request->isPost()) {
   if ($request->getParameter('btn_save')) {

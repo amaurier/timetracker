@@ -45,8 +45,8 @@ $group_name = $group_details['group_name'];
 
 $form = new Form('groupForm');
 $form->addInput(array('type'=>'hidden','name'=>'id','value'=>$group_id));
-$form->addInput(array('type'=>'submit','name'=>'btn_delete','value'=>$i18n->get('label.delete')));
-$form->addInput(array('type'=>'submit','name'=>'btn_cancel','value'=>$i18n->get('button.cancel')));
+$form->addInput(array('type'=>'submit','name'=>'btn_delete','value'=>$i18n->get('label.delete'),'cssClass'=>'btn btn-primary'));
+$form->addInput(array('type'=>'submit','name'=>'btn_cancel','value'=>$i18n->get('button.cancel'),'cssClass'=>'btn btn-outline-primary'));
 
 if ($request->isPost()) {
   if ($request->getParameter('btn_delete')) {
