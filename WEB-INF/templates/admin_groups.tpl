@@ -31,14 +31,6 @@
   {/if}
 </table>
 
-<table width="100%">
-  <tr>
-    <td align="center">
-      <br>
-      <form>
-        <input type="button" onclick="chLocation('admin_group_add.php');" value="{$i18n.button.create_group}">&nbsp;{$i18n.label.or}&nbsp;
-        <input type="button" onclick="chLocation('import.php');" value="{$i18n.button.import}">
-      </form>
-    </td>
-  </tr>
-</table>
+<a href="admin_group_add.php" class="btn btn-primary">{$i18n.button.create_group}</a>
+{$i18n.label.or}
+<a href="import.php" class="btn btn-primary">{$i18n.button.import}</a>
