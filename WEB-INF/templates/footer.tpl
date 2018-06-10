@@ -1,13 +1,13 @@
-<footer class="container">
+<footer class="container-fluid text-light bg-dark mt-4 p-4">
   <div class="row">
-    <div class="col-sm-12 text-center">
-      <div style="background-color:#eeeeee">
+    <div class="col-sm-12 text-center p-2">
+      <div>
         <a href="https://www.anuko.com/lp/tt_8.htm" target="_blank">{$i18n.footer.contribute_msg}</a>
       </div>
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-12 text-center">
+    <div class="col-sm-12 text-center p-2">
       Anuko Time Tracker 1.17.90.4272 | Copyright &copy; <a href="https://www.anuko.com/lp/tt_3.htm" target="_blank">Anuko</a> |
         <a href="https://www.anuko.com/lp/tt_4.htm" target="_blank">{$i18n.footer.credits}</a> |
         <a href="https://www.anuko.com/lp/tt_5.htm" target="_blank">{$i18n.footer.license}</a> |
