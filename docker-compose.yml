@@ -1,7 +1,7 @@
 version: "3.5"
 services:
   web:
-    image: nginx:latest
+    image: nginx:1.15.10
     ports:
       - "8080:80"
     volumes:
@@ -18,7 +18,7 @@ services:
         source: ./
         target: /usr/share/nginx/html
   data:
-    image: mariadb
+    image: mariadb:10.3.14
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
