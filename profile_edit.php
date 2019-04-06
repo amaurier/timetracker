@@ -55,14 +55,14 @@ if ($request->isPost()) {
 }
 
 $form = new Form('profileForm');
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'name','value'=>$cl_name,'enable'=>$can_manage_account));
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'login','value'=>$cl_login,'enable'=>$can_manage_account));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'name','value'=>$cl_name,'enable'=>$can_manage_account,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'login','value'=>$cl_login,'enable'=>$can_manage_account,'cssClass'=>'form-control'));
 if (!$auth->isPasswordExternal()) {
-  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password1','value'=>$cl_password1));
-  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password2','value'=>$cl_password2));
+  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password1','value'=>$cl_password1,'cssClass'=>'form-control'));
+  $form->addInput(array('type'=>'password','maxlength'=>'30','name'=>'password2','value'=>$cl_password2,'cssClass'=>'form-control'));
 }
-$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'email','value'=>$cl_email,'enable'=>$can_manage_account));
-$form->addInput(array('type'=>'submit','name'=>'btn_save','value'=>$i18n->get('button.save')));
+$form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'email','value'=>$cl_email,'enable'=>$can_manage_account,'cssClass'=>'form-control'));
+$form->addInput(array('type'=>'submit','name'=>'btn_save','value'=>$i18n->get('button.save'),'cssClass'=>'btn btn-primary'));
 
 if ($request->isPost()) {
   // Validate user input.
