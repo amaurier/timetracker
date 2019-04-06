@@ -19,6 +19,10 @@ services:
         target: /usr/share/nginx/html
   data:
     image: mariadb:10.3.14
+    volumes:
+      - type: bind
+        source: ./mysql.sql
+        target: /docker-entrypoint-initdb.d/mysql.sql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
