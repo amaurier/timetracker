@@ -37,7 +37,7 @@ class ttRoleHelper {
     $mdb2 = getConnection();
 
     $sql = "select id, name, description, rank, rights, status from tt_roles
-      where id = $id and group_id = $user->group_id and (status = 0 or status = 1)";
+      where id = $id and group_id = ".$user->getGroup()." and (status = 0 or status = 1)";
     $res = $mdb2->query($sql);
 
     if (!is_a($res, 'PEAR_Error')) {
@@ -56,8 +56,8 @@ class ttRoleHelper {
     $mdb2 = getConnection();
     global $user;
 
-    $sql = "select id from tt_roles where group_id = $user->group_id and name = ".
-      $mdb2->quote($role_name)." and (status = 1 or status = 0)";
+    $sql = "select id from tt_roles where group_id = ".$user->getGroup().
+      " and name = ".$mdb2->quote($role_name)." and (status = 1 or status = 0)";
     $res = $mdb2->query($sql);
 
     if (!is_a($res, 'PEAR_Error')) {
@@ -89,7 +89,7 @@ class ttRoleHelper {
     global $user;
     $mdb2 = getConnection();
 
-    $sql = "select rights from tt_roles where group_id = $user->group_id and id = $role_id";
+    $sql = "select rights from tt_roles where group_id = ".$user->getGroup()." and id = $role_id";
     $res = $mdb2->query($sql);
 
     if (!is_a($res, 'PEAR_Error')) {
@@ -102,13 +102,15 @@ class ttRoleHelper {
   }
 
   // getRoleByRank looks up a role by its rank.
-  static function getRoleByRank($rank, $group_id) {
+  static function getRoleByRank($rank) {
     global $user;
     $mdb2 = getConnection();
 
-    $rank = (int) $rank; // Cast to int just in case for better security.
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+    $rank = (int) $rank; // Cast to int just in case.
 
-    $sql = "select id from tt_roles where group_id = $group_id and rank = $rank and (status = 1 or status = 0)";
+    $sql = "select id from tt_roles where group_id = $group_id and org_id = $org_id and rank = $rank and (status = 1 or status = 0)";
     $res = $mdb2->query($sql);
 
     if (!is_a($res, 'PEAR_Error')) {
@@ -124,6 +126,9 @@ class ttRoleHelper {
     global $user;
     $mdb2 = getConnection();
 
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     $id = (int)$fields['id'];
     if (isset($fields['name'])) $name_part = 'name = '.$mdb2->quote($fields['name']);
     if (isset($fields['rank'])) $rank_part = ', rank = '.(int)$fields['rank'];
@@ -131,7 +136,7 @@ class ttRoleHelper {
     if (isset($fields['status'])) $status_part = ', status = '.(int)$fields['status'];
     if (isset($fields['rights'])) $rights_part = ', rights = '.$mdb2->quote($fields['rights']);
     $parts = trim($name_part.$rank_part.$descr_part.$status_part.$rights_part, ',');
-    $sql = "update tt_roles set $parts where id = $id and group_id = $user->group_id";
+    $sql = "update tt_roles set $parts where id = $id and group_id = $group_id and org_id = $org_id";
     $affected = $mdb2->exec($sql);
     return (!is_a($affected, 'PEAR_Error'));
   }
@@ -141,9 +146,11 @@ class ttRoleHelper {
     global $user;
 
     $mdb2 = getConnection();
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
 
     // Mark the task as deleted.
-    $sql = "update tt_roles set status = NULL where id = $role_id and group_id = $user->group_id";
+    $sql = "update tt_roles set status = NULL where id = $role_id and group_id = $group_id and org_id = $org_id";
     $affected = $mdb2->exec($sql);
     return (!is_a($affected, 'PEAR_Error'));
   }
@@ -151,25 +158,24 @@ class ttRoleHelper {
   // insert - inserts an entry into tt_roles table.
   static function insert($fields)
   {
+    global $user;
     $mdb2 = getConnection();
 
-    $group_id = (int) $fields['group_id'];
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
     $name = $fields['name'];
     $rank = (int) $fields['rank'];
     $description = $fields['description'];
     $rights = $fields['rights'];
     $status = $fields['status'];
 
-    $sql = "insert into tt_roles (group_id, name, rank, description, rights, status)
-      values ($group_id, ".$mdb2->quote($name).", $rank, ".$mdb2->quote($description).", ".$mdb2->quote($rights).", ".$mdb2->quote($status).")";
+    $sql = "insert into tt_roles (group_id, org_id, name, rank, description, rights, status)
+      values ($group_id, $org_id, ".$mdb2->quote($name).", $rank, ".$mdb2->quote($description).", ".$mdb2->quote($rights).", ".$mdb2->quote($status).")";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
 
-    $sql = "SELECT LAST_INSERT_ID() AS last_id";
-    $res = $mdb2->query($sql);
-    $val = $res->fetchRow();
-    $last_id = $val['last_id'];
+    $last_id = $mdb2->lastInsertID('tt_roles', 'id');
     return $last_id;
   }
 
@@ -183,17 +189,17 @@ class ttRoleHelper {
 
     $mdb2 = getConnection();
 
-    $rights_client = 'view_own_reports,view_own_charts,view_own_invoices,manage_own_settings';
+    $rights_client = 'view_client_reports,view_client_invoices,manage_own_settings';
     $rights_user = 'track_own_time,track_own_expenses,view_own_reports,view_own_charts,view_own_projects,view_own_tasks,manage_own_settings,view_users';
-    $rights_supervisor = $rights_user.',track_time,track_expenses,view_reports,view_charts,view_own_clients,override_punch_mode,override_date_lock,override_own_date_lock,swap_roles,approve_timesheets';
+    $rights_supervisor = $rights_user.',track_time,track_expenses,view_reports,approve_reports,approve_timesheets,view_charts,view_own_clients,override_punch_mode,override_date_lock,override_own_date_lock,swap_roles';
     $rights_comanager = $rights_supervisor.',manage_own_account,manage_users,manage_projects,manage_tasks,manage_custom_fields,manage_clients,manage_invoices,override_allow_ip,manage_basic_settings,view_all_reports';
-    $rights_manager = $rights_comanager.',manage_features,manage_advanced_settings,manage_roles,export_data,manage_subgroups';
+    $rights_manager = $rights_comanager.',manage_features,manage_advanced_settings,manage_roles,export_data,approve_own_timesheets,manage_subgroups';
 
     // Active roles.
     $name = $mdb2->quote($i18n->get('role.user.label'));
     $description = $mdb2->quote($i18n->get('role.user.description'));
     $rights = $mdb2->quote($rights_user);
-    $sql = "insert into tt_roles (group_id, name, description, rank, rights, status) values($group_id, $name, $description, 4, $rights, 1)";
+    $sql = "insert into tt_roles (group_id, org_id, name, description, rank, rights, status) values($group_id, $group_id, $name, $description, 4, $rights, 1)";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
@@ -201,7 +207,7 @@ class ttRoleHelper {
     $name = $mdb2->quote($i18n->get('role.client.label'));
     $description = $mdb2->quote($i18n->get('role.client.description'));
     $rights = $mdb2->quote($rights_client);
-    $sql = "insert into tt_roles (group_id, name, description, rank, rights, status) values($group_id, $name, $description, 16, $rights, 1)";
+    $sql = "insert into tt_roles (group_id, org_id, name, description, rank, rights, status) values($group_id, $group_id, $name, $description, 16, $rights, 1)";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
@@ -209,7 +215,7 @@ class ttRoleHelper {
     $name = $mdb2->quote($i18n->get('role.comanager.label'));
     $description = $mdb2->quote($i18n->get('role.comanager.description'));
     $rights = $mdb2->quote($rights_comanager);
-    $sql = "insert into tt_roles (group_id, name, description, rank, rights, status) values($group_id, $name, $description, 68, $rights, 1)";
+    $sql = "insert into tt_roles (group_id, org_id, name, description, rank, rights, status) values($group_id, $group_id, $name, $description, 68, $rights, 1)";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
@@ -217,7 +223,7 @@ class ttRoleHelper {
     $name = $mdb2->quote($i18n->get('role.manager.label'));
     $description = $mdb2->quote($i18n->get('role.manager.description'));
     $rights = $mdb2->quote($rights_manager);
-    $sql = "insert into tt_roles (group_id, name, description, rank, rights, status) values($group_id, $name, $description, 324, $rights, 1)";
+    $sql = "insert into tt_roles (group_id, org_id, name, description, rank, rights, status) values($group_id, $group_id, $name, $description, 324, $rights, 1)";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
@@ -226,7 +232,7 @@ class ttRoleHelper {
     $name = $mdb2->quote($i18n->get('role.supervisor.label'));
     $description = $mdb2->quote($i18n->get('role.supervisor.description'));
     $rights = $mdb2->quote($rights_supervisor);
-    $sql = "insert into tt_roles (group_id, name, description, rank, rights, status) values($group_id, $name, $description, 12, $rights, 0)";
+    $sql = "insert into tt_roles (group_id, org_id, name, description, rank, rights, status) values($group_id, $group_id, $name, $description, 12, $rights, 0)";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
@@ -248,7 +254,7 @@ class ttRoleHelper {
     $rights_user = 'track_own_time,track_own_expenses,view_own_reports,view_own_charts,view_own_projects,view_own_tasks,manage_own_settings,view_users';
     $rights_supervisor = $rights_user.',track_time,track_expenses,view_reports,view_charts,view_own_clients,override_punch_mode,override_date_lock,override_own_date_lock,swap_roles,approve_timesheets';
     $rights_comanager = $rights_supervisor.',manage_own_account,manage_users,manage_projects,manage_tasks,manage_custom_fields,manage_clients,manage_invoices,override_allow_ip,manage_basic_settings,view_all_reports';
-    $rights_manager = $rights_comanager.',manage_features,manage_advanced_settings,manage_roles,export_data,manage_subgroups';
+    $rights_manager = $rights_comanager.',manage_features,manage_advanced_settings,manage_roles,export_data,approve_all_reports,manage_subgroups';
 
     // Active roles.
     $name = $mdb2->quote($i18n->get('role.user.label'));
@@ -311,5 +317,30 @@ class ttRoleHelper {
         return $val['id'];
     }
     return false;
+  }
+
+  // copyRolesToGroup copies roles from current on behalf group to another.
+  static function copyRolesToGroup($group_id) {
+    global $user;
+    $mdb2 = getConnection();
+
+    $org_id = $user->org_id;
+    $columns = '(group_id, org_id, name, description, rank, rights, status)';
+    $roles = ttGroupHelper::getRoles(); // Roles in current on behalf group.
+
+    foreach ($roles as $role) {
+      $values = "values($group_id, $org_id".
+        ', '.$mdb2->quote($role['name']).
+        ', '.$mdb2->quote($role['description']).
+        ', '.(int)$role['rank'].
+        ', '.$mdb2->quote($role['rights']).
+        ', '.$mdb2->quote($role['status']).
+        ')';
+      $sql = "insert into tt_roles $columns $values";
+      $affected = $mdb2->exec($sql);
+      if (is_a($affected, 'PEAR_Error'))
+        return false;
+    }
+    return true;
   }
 }

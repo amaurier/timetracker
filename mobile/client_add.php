@@ -29,7 +29,7 @@
 require_once('../initialize.php');
 import('form.Form');
 import('ttClientHelper');
-import('ttTeamHelper');
+import('ttGroupHelper');
 
 // Access checks.
 if (!ttAccessAllowed('manage_clients')) {
@@ -41,7 +41,7 @@ if (!$user->isPluginEnabled('cl')) {
   exit();
 }
 
-$projects = ttTeamHelper::getActiveProjects($user->group_id);
+$projects = ttGroupHelper::getActiveProjects();
 
 if ($request->isPost()) {
   $cl_name = trim($request->getParameter('name'));
@@ -54,11 +54,13 @@ if ($request->isPost()) {
   //   $cl_projects[] = $project_item['id'];
 }
 
+$show_projects = (MODE_PROJECTS == $user->getTrackingMode() || MODE_PROJECTS_AND_TASKS == $user->getTrackingMode()) && count($projects) > 0;
+
 $form = new Form('clientForm');
 $form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'name','value'=>$cl_name));
 $form->addInput(array('type'=>'textarea','name'=>'address','maxlength'=>'255','class'=>'mobile-textarea','value'=>$cl_address));
 $form->addInput(array('type'=>'floatfield','name'=>'tax','size'=>'10','format'=>'.2','value'=>$cl_tax));
-if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->tracking_mode)
+if ($show_projects)
   $form->addInput(array('type'=>'checkboxgroup','name'=>'projects','data'=>$projects,'layout'=>'H','datakeys'=>array('id','name'),'value'=>$cl_projects));
 $form->addInput(array('type'=>'submit','name'=>'btn_submit','value'=>$i18n->get('button.add')));
 
@@ -70,9 +72,7 @@ if ($request->isPost()) {
 
   if ($err->no()) {
     if (!ttClientHelper::getClientByName($cl_name)) {
-      if (ttClientHelper::insert(array(
-        'group_id' => $user->group_id,
-        'name' => $cl_name,
+      if (ttClientHelper::insert(array('name' => $cl_name,
         'address' => $cl_address,
         'tax' => $cl_tax,
         'projects' => $cl_projects,
@@ -82,12 +82,13 @@ if ($request->isPost()) {
       } else
         $err->add($i18n->get('error.db'));
      } else
-       $err->add($i18n->get('error.client_exists'));
+       $err->add($i18n->get('error.object_exists'));
   }
 } // isPost
 
 $smarty->assign('forms', array($form->getName()=>$form->toArray()));
 $smarty->assign('onload', 'onLoad="document.clientForm.name.focus()"');
+$smarty->assign('show_projects',$show_projects);
 $smarty->assign('title', $i18n->get('title.add_client'));
 $smarty->assign('content_page_name', 'mobile/client_add.tpl');
 $smarty->display('mobile/index.tpl');

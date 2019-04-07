@@ -102,7 +102,9 @@ class ttUserHelper {
       $password = 'md5('.$password.')';
     $email = isset($fields['email']) ? $fields['email'] : '';
     $group_id = (int) $fields['group_id'];
+    $org_id = (int) $fields['org_id'];
     $rate = str_replace(',', '.', isset($fields['rate']) ? $fields['rate'] : 0);
+    $quota_percent = str_replace(',', '.', isset($fields['quota_percent']) ? $fields['quota_percent'] : 100);
     if($rate == '')
       $rate = 0;
     if (array_key_exists('status', $fields)) { // Key exists and may be NULL during migration of deleted acounts.
@@ -110,20 +112,16 @@ class ttUserHelper {
       $status_v = ', '.$mdb2->quote($fields['status']);
     }
     $created_ip_v = ', '.$mdb2->quote($_SERVER['REMOTE_ADDR']);
-    $created_by_v = ', '.$mdb2->quote($user->id);
+    $created_by_v = ', '.$user->id;
 
-    $sql = "insert into tt_users (name, login, password, group_id, role_id, client_id, rate, email, created, created_ip, created_by $status_f) values (".
+    $sql = "insert into tt_users (name, login, password, group_id, org_id, role_id, client_id, rate, quota_percent, email, created, created_ip, created_by $status_f) values (".
       $mdb2->quote($fields['name']).", ".$mdb2->quote($fields['login']).
-      ", $password, $group_id, ".$mdb2->quote($fields['role_id']).", ".$mdb2->quote($fields['client_id']).", $rate, ".$mdb2->quote($email).", now() $created_ip_v $created_by_v $status_v)";
+      ", $password, $group_id, $org_id, ".$mdb2->quote($fields['role_id']).", ".$mdb2->quote($fields['client_id']).", $rate, $quota_percent, ".$mdb2->quote($email).", now() $created_ip_v $created_by_v $status_v)";
     $affected = $mdb2->exec($sql);
 
     // Now deal with project assignment.
     if (!is_a($affected, 'PEAR_Error')) {
-      $sql = "SELECT LAST_INSERT_ID() AS last_id";
-      $res = $mdb2->query($sql);
-      $val = $res->fetchRow();
-      $last_id = $val['last_id'];
-
+      $last_id = $mdb2->lastInsertID('tt_users', 'id');
       $projects = isset($fields['projects']) ? $fields['projects'] : array();
       if (count($projects) > 0) {
         // We have at least one project assigned. Insert corresponding entries in tt_user_project_binds table.
@@ -133,7 +131,8 @@ class ttUserHelper {
           else
             $p['rate'] = str_replace(',', '.', $p['rate']);
 
-          $sql = "insert into tt_user_project_binds (project_id, user_id, rate, status) values(".$p['id'].",".$last_id.",".$p['rate'].", 1)";
+          $sql = "insert into tt_user_project_binds (project_id, user_id, group_id, org_id, rate, status)".
+            " values(".$p['id'].", $last_id, $group_id, $org_id, ".$p['rate'].", 1)";
           $affected = $mdb2->exec($sql);
         }
       }
@@ -148,16 +147,27 @@ class ttUserHelper {
     $mdb2 = getConnection();
 
     // Check parameters.
-    if (!$user_id || !isset($fields['login']))
+    if (!$user_id)
       return false;
 
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     // Prepare query parts.
+    if (isset($fields['login'])) {
+      $login_part = ", login = ".$mdb2->quote($fields['login']);
+    }
+
     if (isset($fields['password']))
       $pass_part = ', password = md5('.$mdb2->quote($fields['password']).')';
-    if (in_array('manage_users', $user->rights)) {
+
+    if (isset($fields['name']))
+      $name_part = ', name = '.$mdb2->quote($fields['name']);
+
+    if ($user->can('manage_users')) {
       if (isset($fields['role_id'])) {
         $role_id = (int) $fields['role_id'];
-        $role_id_part = ", role_id = $role_id";
+        $role_part = ", role_id = $role_id";
       }
       if (array_key_exists('client_id', $fields)) // Could be NULL.
         $client_part = ", client_id = ".$mdb2->quote($fields['client_id']);
@@ -169,17 +179,24 @@ class ttUserHelper {
       $rate_part = ", rate = ".$mdb2->quote($rate); 
     }
 
+    if (array_key_exists('quota_percent', $fields)) {
+      $quota_percent = str_replace(',', '.', isset($fields['quota_percent']) ? $fields['quota_percent'] : 100);
+      $quota_percent_part = ", quota_percent = ".$mdb2->quote($quota_percent);
+    }
+
+    if (isset($fields['email']))
+      $email_part = ', email = '.$mdb2->quote($fields['email']);
+
     if (isset($fields['status'])) {
       $status = (int) $fields['status']; 
       $status_part = ", status = $status";
     }
 
-    $modified_part = ', modified = now(), modified_ip = '.$mdb2->quote($_SERVER['REMOTE_ADDR']).', modified_by = '.$mdb2->quote($user->id);
+    $modified_part = ', modified = now(), modified_ip = '.$mdb2->quote($_SERVER['REMOTE_ADDR']).', modified_by = '.$user->id;
+    $parts = ltrim($login_part.$pass_part.$name_part.$role_part.$client_part.$rate_part.$quota_percent_part.$email_part.$modified_part.$status_part, ',');
 
-    $sql = "update tt_users set login = ".$mdb2->quote($fields['login']).
-      "$pass_part, name = ".$mdb2->quote($fields['name']).
-      "$role_id_part $client_part $rate_part $modified_part $status_part, email = ".$mdb2->quote($fields['email']).
-      " where id = $user_id";
+    $sql = "update tt_users set $parts".
+      " where id = $user_id and group_id = $group_id and org_id = $org_id";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error')) return false;
 
@@ -191,7 +208,7 @@ class ttUserHelper {
       // otherwise de-activate the bind (set its status to inactive). This will keep the bind
       // and its rate in database for reporting.
 
-      $all_projects = ttTeamHelper::getAllProjects($user->group_id);
+      $all_projects = ttTeamHelper::getAllProjects($user->getGroup());
       $assigned_projects = isset($fields['projects']) ? $fields['projects'] : array();
 
       foreach($all_projects as $p) {
@@ -227,8 +244,12 @@ class ttUserHelper {
             if (is_a($affected, 'PEAR_Error')) die ($affected->getMessage());
           } else {
             // Record does not exist. Insert it.
-            ttUserHelper::insertBind($user_id, $project_id, $rate, 1);
-          }
+            ttUserHelper::insertBind(array(
+              'user_id' => $user_id,
+              'project_id' => $project_id,
+              'rate' => $rate,
+              'status' => ACTIVE));
+           }
         }
       }
     }
@@ -307,11 +328,19 @@ class ttUserHelper {
   }
 
   // insertBind - inserts a user to project bind into tt_user_project_binds table.
-  static function insertBind($user_id, $project_id, $rate, $status) {
+  static function insertBind($fields) {
+    global $user;
     $mdb2 = getConnection();
 
-    $sql = "insert into tt_user_project_binds (user_id, project_id, rate, status)
-      values($user_id, $project_id, ".$mdb2->quote($rate).", $status)";
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+    $user_id = (int) $fields['user_id'];
+    $project_id = (int) $fields['project_id'];
+    $rate = $mdb2->quote($fields['rate']);
+    $status = $mdb2->quote($fields['status']);
+
+    $sql = "insert into tt_user_project_binds (user_id, project_id, group_id, org_id, rate, status)".
+      " values($user_id, $project_id, $group_id, $org_id, $rate, $status)";
     $affected = $mdb2->exec($sql);
     return (!is_a($affected, 'PEAR_Error'));
   }
@@ -356,5 +385,40 @@ class ttUserHelper {
     $accessed_ip = $mdb2->quote($_SERVER['REMOTE_ADDR']);
     $sql = "update tt_users set accessed = now(), accessed_ip = $accessed_ip where id = $user->id";
     $mdb2->exec($sql);
+  }
+
+  // canAdd determines if we can add a user in case there is a limit.
+  static function canAdd($num_users = 1) {
+    $mdb2 = getConnection();
+    $sql = "select param_value from tt_site_config where param_name = 'max_users'";
+    $res = $mdb2->query($sql);
+    $val = $res->fetchRow();
+    if (!$val) return true; // No limit.
+
+    $max_count = $val['param_value'];
+    $sql = "select count(*) as user_count from tt_users where group_id > 0 and status is not null";
+    $res = $mdb2->query($sql);
+    $val = $res->fetchRow();
+    if ($val['user_count'] <= $max_count - $num_users)
+      return true; // Limit not reached.
+
+    return false;
+  }
+
+  // getUserRank - obtains a rank for a given user.
+  static function getUserRank($user_id) {
+    global $user;
+    $mdb2 = getConnection();
+
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $sql = "select r.rank from tt_users u".
+      " left join tt_roles r on (u.role_id = r.id)".
+      " where u.id = $user_id and u.group_id = $group_id and u.org_id = $org_id";
+    $res = $mdb2->query($sql);
+    if (is_a($res, 'PEAR_Error')) return 0;
+    $val = $res->fetchRow();
+    return $val['rank'];
   }
 }

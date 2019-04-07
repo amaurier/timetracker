@@ -29,8 +29,9 @@
 require_once('initialize.php');
 import('form.Form');
 import('ttUserHelper');
-import('ttTeamHelper');
+import('ttGroupHelper');
 import('DateAndTime');
+import('ttTimeHelper');
 import('ttExpenseHelper');
 
 // Access checks.
@@ -42,6 +43,10 @@ if (!$user->isPluginEnabled('ex')) {
   header('Location: feature_disabled.php');
   exit();
 }
+if (!$user->exists()) {
+  header('Location: access_denied.php'); // Nobody to enter expenses for.
+  exit();
+}
 if ($user->behalf_id && (!$user->can('track_expenses') || !$user->checkBehalfId())) {
   header('Location: access_denied.php'); // Trying on behalf, but no right or wrong user.
   exit();
@@ -49,6 +54,22 @@ if ($user->behalf_id && (!$user->can('track_expenses') || !$user->checkBehalfId(
 if (!$user->behalf_id && !$user->can('track_own_expenses') && !$user->adjustBehalfId()) {
   header('Location: access_denied.php'); // Trying as self, but no right for self, and noone to work on behalf.
   exit();
+}
+if ($request->isPost() && $request->getParameter('user')) {
+  if (!$user->isUserValid($request->getParameter('user'))) {
+    header('Location: access_denied.php'); // Wrong user id on post.
+    exit();
+  }
+}
+// End of access checks.
+
+// Determine user for which we display this page.
+$userChanged = $request->getParameter('user_changed');
+if ($request->isPost() && $userChanged) {
+  $user_id = $request->getParameter('user');
+  $user->setOnBehalfUser($user_id);
+} else {
+  $user_id = $user->getUser();
 }
 
 // Initialize and store date in session.
@@ -60,8 +81,10 @@ if(!$cl_date)
   $cl_date = $selected_date->toString(DB_DATEFORMAT);
 $_SESSION['date'] = $cl_date;
 
+$tracking_mode = $user->getTrackingMode();
+$show_project = MODE_PROJECTS == $tracking_mode || MODE_PROJECTS_AND_TASKS == $tracking_mode;
+
 // Initialize variables.
-$on_behalf_id = $request->getParameter('onBehalfUser', (isset($_SESSION['behalf_id']) ? $_SESSION['behalf_id'] : $user->id));
 $cl_client = $request->getParameter('client', ($request->isPost() ? null : @$_SESSION['client']));
 $_SESSION['client'] = $cl_client;
 $cl_project = $request->getParameter('project', ($request->isPost() ? null : @$_SESSION['project']));
@@ -73,26 +96,28 @@ $cl_cost = $request->getParameter('cost');
 $form = new Form('expensesForm');
 
 if ($user->can('track_expenses')) {
+  $rank = $user->getMaxRankForGroup($user->getGroup());
   if ($user->can('track_own_expenses'))
-    $options = array('status'=>ACTIVE,'max_rank'=>$user->rank-1,'include_self'=>true,'self_first'=>true);
+    $options = array('status'=>ACTIVE,'max_rank'=>$rank,'include_self'=>true,'self_first'=>true);
   else
-    $options = array('status'=>ACTIVE,'max_rank'=>$user->rank-1);
+    $options = array('status'=>ACTIVE,'max_rank'=>$rank);
   $user_list = $user->getUsers($options);
   if (count($user_list) >= 1) {
     $form->addInput(array('type'=>'combobox',
-      'onchange'=>'this.form.submit();',
-      'name'=>'onBehalfUser',
+      'onchange'=>'this.form.user_changed.value=1;this.form.submit();',
+      'name'=>'user',
       'style'=>'width: 250px;',
-      'value'=>$on_behalf_id,
+      'value'=>$user_id,
       'data'=>$user_list,
       'datakeys'=>array('id','name')));
-    $smarty->assign('on_behalf_control', 1);
+    $form->addInput(array('type'=>'hidden','name'=>'user_changed'));
+    $smarty->assign('user_dropdown', 1);
   }
 }
 
 // Dropdown for clients in MODE_TIME. Use all active clients.
-if (MODE_TIME == $user->tracking_mode && $user->isPluginEnabled('cl')) {
-    $active_clients = ttTeamHelper::getActiveClients($user->group_id, true);
+if (MODE_TIME == $tracking_mode && $user->isPluginEnabled('cl')) {
+    $active_clients = ttGroupHelper::getActiveClients(true);
     $form->addInput(array('type'=>'combobox',
       'onchange'=>'fillProjectDropdown(this.value);',
       'name'=>'client',
@@ -104,11 +129,10 @@ if (MODE_TIME == $user->tracking_mode && $user->isPluginEnabled('cl')) {
   // Note: in other modes the client list is filtered to relevant clients only. See below.
 }
 
-if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->tracking_mode) {
+if ($show_project) {
   // Dropdown for projects assigned to user.
   $project_list = $user->getAssignedProjects();
   $form->addInput(array('type'=>'combobox',
-    // 'onchange'=>'fillTaskDropdown(this.value);',
     'name'=>'project',
     'style'=>'width: 250px;',
     'value'=>$cl_project,
@@ -118,7 +142,7 @@ if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->t
 
   // Dropdown for clients if the clients plugin is enabled.
   if ($user->isPluginEnabled('cl')) {
-    $active_clients = ttTeamHelper::getActiveClients($user->group_id, true);
+    $active_clients = ttGroupHelper::getActiveClients(true);
     // We need an array of assigned project ids to do some trimming. 
     foreach($project_list as $project)
       $projects_assigned_to_user[] = $project['id'];
@@ -144,7 +168,7 @@ if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->t
   }
 }
 // If predefined expenses are configured, add controls to select an expense and quantity.
-$predefined_expenses = ttTeamHelper::getPredefinedExpenses($user->group_id);
+$predefined_expenses = ttGroupHelper::getPredefinedExpenses();
 if ($predefined_expenses) {
   $form->addInput(array('type'=>'combobox',
     'onchange'=>'recalculateCost();',
@@ -168,18 +192,18 @@ if ($request->isPost()) {
     // Validate user input.
     if ($user->isPluginEnabled('cl') && $user->isPluginEnabled('cm') && !$cl_client)
       $err->add($i18n->get('error.client'));
-    if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->tracking_mode) {
-      if (!$cl_project) $err->add($i18n->get('error.project'));
-    }
+    if ($show_project && !$cl_project)
+      $err->add($i18n->get('error.project'));
     if (!ttValidString($cl_item_name)) $err->add($i18n->get('error.field'), $i18n->get('label.comment'));
     if (!ttValidFloat($cl_cost)) $err->add($i18n->get('error.field'), $i18n->get('label.cost'));
 
     // Prohibit creating entries in future.
-    if (!$user->future_entries) {
+    if (!$user->getConfigOption('future_entries')) {
       $browser_today = new DateAndTime(DB_DATEFORMAT, $request->getParameter('browser_today', null));
       if ($selected_date->after($browser_today))
         $err->add($i18n->get('error.future_date'));
     }
+    if (!ttTimeHelper::canAdd()) $err->add($i18n->get('error.expired'));
     // Finished validating input data.
 
     // Prohibit creating entries in locked range.
@@ -188,35 +212,24 @@ if ($request->isPost()) {
 
     // Insert record.
     if ($err->no()) {
-      if (ttExpenseHelper::insert(array('date'=>$cl_date,'user_id'=>$user->getActiveUser(),
-        'client_id'=>$cl_client,'project_id'=>$cl_project,'name'=>$cl_item_name,'cost'=>$cl_cost,'status'=>1))) {
+      if (ttExpenseHelper::insert(array('date'=>$cl_date,'client_id'=>$cl_client,
+          'project_id'=>$cl_project,'name'=>$cl_item_name,'cost'=>$cl_cost,'status'=>1))) {
         header('Location: expenses.php');
         exit();
       } else
         $err->add($i18n->get('error.db'));
     }
-  } elseif ($request->getParameter('onBehalfUser')) {
-    if($user->can('track_expenses')) {
-      unset($_SESSION['behalf_id']);
-      unset($_SESSION['behalf_name']);
-
-      if($on_behalf_id != $user->id) {
-        $_SESSION['behalf_id'] = $on_behalf_id;
-        $_SESSION['behalf_name'] = ttUserHelper::getUserName($on_behalf_id);
-      }
-      header('Location: expenses.php');
-      exit();
-    }
   }
 }
 
-$smarty->assign('day_total', ttExpenseHelper::getTotalForDay($user->getActiveUser(), $cl_date));
-$smarty->assign('expense_items', ttExpenseHelper::getItems($user->getActiveUser(), $cl_date));
+$smarty->assign('forms', array($form->getName()=>$form->toArray()));
+$smarty->assign('show_project', $show_project);
+$smarty->assign('day_total', ttExpenseHelper::getTotalForDay($cl_date));
+$smarty->assign('expense_items', ttExpenseHelper::getItems($cl_date));
 $smarty->assign('predefined_expenses', $predefined_expenses);
 $smarty->assign('client_list', $client_list);
 $smarty->assign('project_list', $project_list);
-$smarty->assign('forms', array($form->getName()=>$form->toArray()));
-$smarty->assign('timestring', $selected_date->toString($user->date_format));
+$smarty->assign('timestring', $selected_date->toString($user->getDateFormat()));
 $smarty->assign('title', $i18n->get('title.expenses'));
 $smarty->assign('content_page_name', 'expenses.tpl');
 $smarty->display('index.tpl');

@@ -32,7 +32,7 @@ import('form.ActionForm');
 import('ttReportHelper');
 
 // Access checks.
-if (!(ttAccessAllowed('view_own_reports') || ttAccessAllowed('view_reports'))) {
+if (!(ttAccessAllowed('view_own_reports') || ttAccessAllowed('view_reports') || ttAccessAllowed('view_all_reports')  || ttAccessAllowed('view_client_reports'))) {
   header('Location: access_denied.php');
   exit();
 }
@@ -41,7 +41,7 @@ if (!(ttAccessAllowed('view_own_reports') || ttAccessAllowed('view_reports'))) {
 // Use custom fields plugin if it is enabled.
 if ($user->isPluginEnabled('cf')) {
   require_once('plugins/CustomFields.class.php');
-  $custom_fields = new CustomFields($user->group_id);
+  $custom_fields = new CustomFields();
 }
 
 // Report settings are stored in session bean before we get here.
@@ -58,10 +58,11 @@ $type = $request->getParameter('type');
 $totals_only = $bean->getAttribute('chtotalsonly');
 
 // Obtain items.
+$options = ttReportHelper::getReportOptions($bean);
 if ($totals_only)
-  $subtotals = ttReportHelper::getSubtotals($bean);
+  $subtotals = ttReportHelper::getSubtotals($options);
 else
-  $items = ttReportHelper::getItems($bean);
+  $items = ttReportHelper::getItems($options);
 
 // Build a string to use as filename for the files being downloaded.
 $filename = strtolower($i18n->get('title.report')).'_'.$bean->mValues['start_date'].'_'.$bean->mValues['end_date'];
@@ -83,17 +84,22 @@ if ('xml' == $type) {
   print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
   print "<rows>\n";
 
-  $group_by = $bean->getAttribute('group_by');
   if ($totals_only) {
-    // Totals only report. Print subtotals.
+    // Totals only report.
+    $group_by_tag = ttReportHelper::makeGroupByXmlTag($options);
+
+    // Print subtotals.
     foreach ($subtotals as $subtotal) {
       print "<row>\n";
-      print "\t<".$group_by."><![CDATA[".$subtotal['name']."]]></".$group_by.">\n";
+      print "\t<".$group_by_tag."><![CDATA[".$subtotal['name']."]]></".$group_by_tag.">\n";
       if ($bean->getAttribute('chduration')) {
         $val = $subtotal['time'];
-        if($val && defined('EXPORT_DECIMAL_DURATION') && isTrue(EXPORT_DECIMAL_DURATION))
+        if($val && isTrue('EXPORT_DECIMAL_DURATION'))
           $val = time_to_decimal($val);
         print "\t<duration><![CDATA[".$val."]]></duration>\n";
+      }
+      if ($bean->getAttribute('chunits')) {
+        print "\t<units><![CDATA[".$subtotal['units']."]]></units>\n";
       }
       if ($bean->getAttribute('chcost')) {
         print "\t<cost><![CDATA[";
@@ -120,10 +126,11 @@ if ('xml' == $type) {
       if ($bean->getAttribute('chfinish')) print "\t<finish><![CDATA[".$item['finish']."]]></finish>\n";
       if ($bean->getAttribute('chduration')) {
         $duration = $item['duration'];
-        if($duration && defined('EXPORT_DECIMAL_DURATION') && isTrue(EXPORT_DECIMAL_DURATION))
+        if($duration && isTrue('EXPORT_DECIMAL_DURATION'))
           $duration = time_to_decimal($duration);
           print "\t<duration><![CDATA[".$duration."]]></duration>\n";
       }
+      if ($bean->getAttribute('chunits')) print "\t<units><![CDATA[".$item['units']."]]></units>\n";
       if ($bean->getAttribute('chnote')) print "\t<note><![CDATA[".$item['note']."]]></note>\n";
       if ($bean->getAttribute('chcost')) {
         print "\t<cost><![CDATA[";
@@ -133,12 +140,14 @@ if ('xml' == $type) {
           print $item['expense'];
         print "]]></cost>\n";
       }
+      if ($bean->getAttribute('chapproved')) print "\t<approved><![CDATA[".$item['approved']."]]></approved>\n";
       if ($bean->getAttribute('chpaid')) print "\t<paid><![CDATA[".$item['paid']."]]></paid>\n";
       if ($bean->getAttribute('chip')) {
         $ip = $item['modified'] ? $item['modified_ip'].' '.$item['modified'] : $item['created_ip'].' '.$item['created'];
         print "\t<ip><![CDATA[".$ip."]]></ip>\n";
       }
       if ($bean->getAttribute('chinvoice')) print "\t<invoice><![CDATA[".$item['invoice']."]]></invoice>\n";
+      if ($bean->getAttribute('chtimesheet')) print "\t<timesheet><![CDATA[".$item['timesheet_name']."]]></timesheet>\n";
 
       print "</row>\n";
     }
@@ -156,21 +165,14 @@ if ('csv' == $type) {
   $bom = chr(239).chr(187).chr(191); // 0xEF 0xBB 0xBF in the beginning of the file is UTF8 BOM.
   print $bom; // Without this Excel does not display UTF8 characters properly.
 
-  $group_by = $bean->getAttribute('group_by');
   if ($totals_only) {
     // Totals only report.
-
-    // Determine group_by header.
-    if ('cf_1' == $group_by)
-      $group_by_header = $custom_fields->fields[0]['label'];
-    else {
-      $key = 'label.'.$group_by;
-      $group_by_header = $i18n->get($key);
-    }
+    $group_by_header = ttReportHelper::makeGroupByHeader($options);
 
     // Print headers.
     print '"'.$group_by_header.'"';
     if ($bean->getAttribute('chduration')) print ',"'.$i18n->get('label.duration').'"';
+    if ($bean->getAttribute('chunits')) print ',"'.$i18n->get('label.work_units_short').'"';
     if ($bean->getAttribute('chcost')) print ',"'.$i18n->get('label.cost').'"';
     print "\n";
 
@@ -179,10 +181,11 @@ if ('csv' == $type) {
       print '"'.$subtotal['name'].'"';
       if ($bean->getAttribute('chduration')) {
         $val = $subtotal['time'];
-        if($val && defined('EXPORT_DECIMAL_DURATION') && isTrue(EXPORT_DECIMAL_DURATION))
+        if($val && isTrue('EXPORT_DECIMAL_DURATION'))
           $val = time_to_decimal($val);
         print ',"'.$val.'"';
       }
+      if ($bean->getAttribute('chunits')) print ',"'.$subtotal['units'].'"';
       if ($bean->getAttribute('chcost')) {
         if ($user->can('manage_invoices') || $user->isClient())
           print ',"'.$subtotal['cost'].'"';
@@ -202,11 +205,14 @@ if ('csv' == $type) {
     if ($bean->getAttribute('chstart')) print ',"'.$i18n->get('label.start').'"';
     if ($bean->getAttribute('chfinish')) print ',"'.$i18n->get('label.finish').'"';
     if ($bean->getAttribute('chduration')) print ',"'.$i18n->get('label.duration').'"';
+    if ($bean->getAttribute('chunits')) print ',"'.$i18n->get('label.work_units_short').'"';
     if ($bean->getAttribute('chnote')) print ',"'.$i18n->get('label.note').'"';
     if ($bean->getAttribute('chcost')) print ',"'.$i18n->get('label.cost').'"';
+    if ($bean->getAttribute('chapproved')) print ',"'.$i18n->get('label.approved').'"';
     if ($bean->getAttribute('chpaid')) print ',"'.$i18n->get('label.paid').'"';
     if ($bean->getAttribute('chip')) print ',"'.$i18n->get('label.ip').'"';
     if ($bean->getAttribute('chinvoice')) print ',"'.$i18n->get('label.invoice').'"';
+    if ($bean->getAttribute('chtimesheet')) print ',"'.$i18n->get('label.timesheet').'"';
     print "\n";
 
     // Print items.
@@ -221,10 +227,11 @@ if ('csv' == $type) {
       if ($bean->getAttribute('chfinish')) print ',"'.$item['finish'].'"';
       if ($bean->getAttribute('chduration')) {
         $val = $item['duration'];
-        if($val && defined('EXPORT_DECIMAL_DURATION') && isTrue(EXPORT_DECIMAL_DURATION))
+        if($val && isTrue('EXPORT_DECIMAL_DURATION'))
           $val = time_to_decimal($val);
         print ',"'.$val.'"';
       }
+      if ($bean->getAttribute('chunits')) print ',"'.$item['units'].'"';
       if ($bean->getAttribute('chnote')) print ',"'.str_replace('"','""',$item['note']).'"';
       if ($bean->getAttribute('chcost')) {
         if ($user->can('manage_invoices') || $user->isClient())
@@ -232,12 +239,14 @@ if ('csv' == $type) {
         else
           print ',"'.$item['expense'].'"';
       }
+      if ($bean->getAttribute('chapproved')) print ',"'.$item['approved'].'"';
       if ($bean->getAttribute('chpaid')) print ',"'.$item['paid'].'"';
       if ($bean->getAttribute('chip')) {
         $ip = $item['modified'] ? $item['modified_ip'].' '.$item['modified'] : $item['created_ip'].' '.$item['created'];
         print ',"'.$ip.'"';
       }
       if ($bean->getAttribute('chinvoice')) print ',"'.str_replace('"','""',$item['invoice']).'"';
+      if ($bean->getAttribute('chtimesheet')) print ',"'.str_replace('"','""',$item['timesheet_name']).'"';
       print "\n";
     }
   }

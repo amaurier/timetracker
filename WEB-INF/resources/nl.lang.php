@@ -47,14 +47,17 @@ $i18n_key_words = array(
 'menu.create_group' => 'Maak groep',
 'menu.profile' => 'Profiel',
 'menu.group' => 'Groep',
+'menu.plugins' => 'Plugins',
 'menu.time' => 'Tijden',
 'menu.expenses' => 'Kosten',
 'menu.reports' => 'Rapporten',
+'menu.timesheets' => 'Tijdenoverzichten',
 'menu.charts' => 'Grafieken',
 'menu.projects' => 'Projecten',
 'menu.tasks' => 'Taken',
 'menu.users' => 'Medewerkers',
 'menu.groups' => 'Groepen',
+'menu.subgroups' => 'Subgroepen',
 'menu.export' => 'Exporteren',
 'menu.clients' => 'Klanten',
 'menu.options' => 'Opties',
@@ -82,22 +85,33 @@ $i18n_key_words = array(
 'error.auth' => 'Onjuiste inlognaam of wachtwoord.',
 'error.user_exists' => 'Een gebruiker met deze inlognaam bestaat al.',
 'error.object_exists' => 'Een object met deze naam bestaat al.',
-'error.project_exists' => 'Een project met deze naam bestaat al.',
-'error.task_exists' => 'Er bestaat al een taak met deze naam.',
-'error.client_exists' => 'Een klant met deze naam bestaat al.',
 'error.invoice_exists' => 'Dit nummer is al eens toegekend aan een factuur.',
 'error.role_exists' => 'Een rol met deze rangorde bestaat al.',
 'error.no_invoiceable_items' => 'Er zijn geen factuureerbare onderdelen.',
+'error.no_records' => 'Er zijn geen records.',
 'error.no_login' => 'Een medewerker met deze inlognaam bestaat niet.',
 'error.no_groups' => 'Uw database is leeg. Meld je aan als admin en maak een nieuw groep.',
 'error.upload' => 'Fout bij het uploaden van het bestand.',
 'error.range_locked' => 'Datums zijn geblokkeerd.',
-'error.mail_send' => 'Fout bij het versturen van een e-mailbericht.',
+'error.mail_send' => 'Fout bij het versturen van een e-mailbericht. Gebruik MAIL_SMTP_DEBUG om het probleem te diagnosticeren',
 'error.no_email' => 'Geen e-mailadres bekend voor dit account.',
 'error.uncompleted_exists' => 'Niet afgeronde invoer bestaat al. Sluit of verwijder deze.',
 'error.goto_uncompleted' => 'Ga naar onvolledige invoer.',
 'error.overlap' => 'De huidige registratie overlapt een reeds bestaande registratie.',
 'error.future_date' => 'Datum ligt in de toekomst.',
+'error.xml' => 'Fout in XML bestand in regel line %d: %s.',
+'error.cannot_import' => 'Kan het volgende niet importeren: %s.',
+'error.format' => 'Bestandsformaat niet valide.',
+'error.user_count' => 'Limiet op aantal gebruikers.',
+'error.expired' => 'Verloop datum is bereikt.',
+'error.file_storage' => 'Fout bij het opslaan van het bestand.',
+
+// Warning messages.
+'warn.sure' => 'Ben je er zeker van?',
+'warn.confirm_save' => 'De datum is veranderd. Bevestig dat je dit item wilt opslaan en niet wilt kopiëren.',
+
+// Success messages.
+'msg.success' => 'De bewerking is succesvol uitgevoerd.',
 
 // Labels for buttons.
 'button.login' => 'Aanmelden',
@@ -112,14 +126,16 @@ $i18n_key_words = array(
 'button.reset_password' => 'Herstel het wachtwoord',
 'button.send' => 'Verzenden',
 'button.send_by_email' => 'Verzend per e-mail',
-'button.create_group' => 'Maak team', // TODO: replace "team" with "group".
-'button.export' => 'Team exporteren', // TODO: replace "team" with "group".
-'button.import' => 'Team importeren', // TODO: replace "team" with "group".
+'button.create_group' => 'Maak groep',
+'button.export' => 'Groep exporteren',
+'button.import' => 'Groep importeren',
 'button.close' => 'Sluiten',
 'button.stop' => 'Stop',
+'button.approve' => 'Goedkeuren',
+'button.disapprove' => 'Afkeuren',
 
 // Labels for controls on forms. Labels in this section are used on multiple forms.
-'label.group_name' => 'Teamnaam', // TODO: replace "team" with "group".
+'label.group_name' => 'Groepsnaam',
 'label.address' => 'Adres',
 'label.currency' => 'Munteenheid',
 'label.manager_name' => 'Naam van de manager',
@@ -138,6 +154,8 @@ $i18n_key_words = array(
 'label.end_date' => 'Einddatum',
 'label.user' => 'Medewerker',
 'label.users' => 'Medewerkers',
+'label.group' => 'Groep',
+'label.subgroups' => 'Subgroepen',
 'label.roles' => 'Rollen',
 'label.client' => 'Klant',
 'label.clients' => 'Klanten',
@@ -210,18 +228,38 @@ $i18n_key_words = array(
 'label.mark_paid' => 'Markeer als betaald',
 'label.week_note' => 'Week aantekening',
 'label.week_list' => 'Week overzicht',
+'label.work_units' => 'Werk eenheid',
+'label.work_units_short' => 'Eenheid',
+'label.totals_only' => 'Alleen totalen',
+'label.quota' => 'Maanddoel',
+'label.timesheet' => 'Tijdenoverzicht',
+'label.submitted' => 'Verzonden',
+'label.approved' => 'Goedgekeurd',
+'label.approval' => 'Rapport goedkeuring',
+'label.mark_approved' => 'Markeer goegkeuring',
+'label.template' => 'Sjabloon',
+'label.attachments' => 'Bijlagen',
+'label.files' => 'Bestanden',
+'label.image' => 'Afbeelding',
+// TODO: translate the following.
+// 'label.download' => 'Download',
 
 // Form titles.
+'title.error' => 'Fout',
+'title.success' => 'Succes',
 'title.login' => 'Aanmelden',
-'title.groups' => 'Teams', // TODO: change "teams" to "groups".
-'title.create_group' => 'Team maken', // TODO: change "team" to "group".
-'title.edit_group' => 'Team bewerken', // TODO: change "team" to "group".
-'title.delete_group' => 'Team aan het verwijderen', // TODO: change "team" to "group".
+'title.groups' => 'Groepen',
+'title.subgroups' => 'Subgroepen',
+'title.add_group' => 'Groep toevoegen',
+'title.edit_group' => 'Groep bewerken',
+'title.delete_group' => 'Groep aan het verwijderen',
 'title.reset_password' => 'Wachtwoord herstellen',
 'title.change_password' => 'Wachtwoord aan het veranderen',
 'title.time' => 'Tijdsregistraties',
 'title.edit_time_record' => 'Wijzigen tijdrecord',
 'title.delete_time_record' => 'Verwijder tijdrecord',
+// TODO: Translate the following.
+// 'title.time_files' => 'Time Record Files',
 'title.expenses' => 'Kosten',
 'title.edit_expense' => 'Bewerk kosten artikel',
 'title.delete_expense' => 'Verwijder kosten artikel',
@@ -232,10 +270,13 @@ $i18n_key_words = array(
 'title.reports' => 'Rapporten',
 'title.report' => 'Rapport',
 'title.send_report' => 'Rapport aan het versturen',
+'title.timesheets' => 'Tijdenoverzichten',
+'title.timesheet' => 'Tijdenoverzicht',
 'title.invoice' => 'Factuur',
 'title.send_invoice' => 'Factuur verzenden',
 'title.charts' => 'Grafieken',
 'title.projects' => 'Projecten',
+'title.project_files' => 'Project bestanden',
 'title.add_project' => 'Project toevoegen',
 'title.edit_project' => 'Project wijzigen',
 'title.delete_project' => 'Project verwijderen',
@@ -263,12 +304,15 @@ $i18n_key_words = array(
 'title.add_notification' => 'Notificatie toevoegen',
 'title.edit_notification' => 'Notificatie bewerken',
 'title.delete_notification' => 'Notificatie verwijderen',
+'title.add_timesheet' => 'Tijdenoverzicht toevoegen',
+'title.edit_timesheet' => 'Tijdenoverzicht bewerken',
+'title.delete_timesheet' => 'Tijdenoverzicht verwijderen',
 'title.monthly_quotas' => 'Doelen per maand',
-'title.export' => 'Exporteer teamgegevens', // TODO: replace "team" with "group".
-'title.import' => 'Importeer teamgegevens', // TODO: replace "team" with "group".
+'title.export' => 'Exporteer groepsgegevens',
+'title.import' => 'Importeer groepsgegevens',
 'title.options' => 'Opties',
 'title.profile' => 'Profiel',
-'title.group' => 'Groep instelling',
+'title.plugins' => 'Plugins',
 'title.cf_custom_fields' => 'Eigen velden',
 'title.cf_add_custom_field' => 'Eigen veld toevoegen',
 'title.cf_edit_custom_field' => 'Eigen veld bewerken',
@@ -280,6 +324,15 @@ $i18n_key_words = array(
 'title.locking' => 'Blokkeren',
 'title.week_view' => 'Week overzicht',
 'title.swap_roles' => 'Rollen verruilen',
+'title.work_units' => 'Werk eenheid',
+'title.templates' => 'Sjablonen',
+'title.add_template' => 'Sjabloon toevoegen',
+'title.edit_template' => 'Sjabloon bewerken',
+'title.delete_template' => 'Sjabloon verwijderen',
+// TODO: translate the following.
+// 'title.edit_file' => 'Editing File',
+// 'title.delete_file' => 'Deleting File',
+// 'title.download_file' => 'Downloading File',
 
 // Section for common strings inside combo boxes on forms. Strings shared between forms shall be placed here.
 // Strings that are used in a single form must go to the specific form section.
@@ -303,10 +356,13 @@ $i18n_key_words = array(
 'dropdown.clients' => 'klanten',
 'dropdown.select' => '--- kies ---',
 'dropdown.select_invoice' => '--- kies factuur ---',
+'dropdown.select_timesheet' => '--- kies tijdenoverzicht ---',
 'dropdown.status_active' => 'actief',
 'dropdown.status_inactive' => 'inactief',
 'dropdown.delete' => 'verwijderen',
 'dropdown.do_not_delete' => 'niet verwijderen',
+'dropdown.approved' => 'goedgekeurd',
+'dropdown.not_approved' => 'afgekeurd',
 'dropdown.paid' => 'betaald',
 'dropdown.not_paid' => 'niet betaald',
 
@@ -331,8 +387,10 @@ $i18n_key_words = array(
 'form.time.duration_format' => '(uu:mm of 0.0u)',
 'form.time.billable' => 'Factureerbaar',
 'form.time.uncompleted' => 'Onvolledig',
-'form.time.remaining_quota' => 'Te werken uren voor de doelstelling',
-'form.time.over_quota' => 'Meer gewerkte uren dan de doelstelling',
+'form.time.remaining_quota' => 'Nog te werken uren deze maand',
+'form.time.over_quota' => 'Meer gewerkte uren deze maand',
+'form.time.remaining_balance' => 'Minder gewerkte uren naar ratio',
+'form.time.over_balance' => 'Meer gewerkte uren naar ratio',
 
 // Editing Time Record form. See example at https://timetracker.anuko.com/time_edit.php (get there by editing an uncompleted time record).
 'form.time_edit.uncompleted' => 'Dit tijdrecord is opgeslagen met alleen een starttijd. Dit is geen fout.',
@@ -347,6 +405,9 @@ $i18n_key_words = array(
 'form.reports.include_not_billable' => 'niet factureerbaar',
 'form.reports.include_invoiced' => 'gefactureerd',
 'form.reports.include_not_invoiced' => 'niet gefactureerd',
+'form.reports.include_assigned' => 'toegewezen',
+'form.reports.include_not_assigned' => 'niet toegewezen',
+'form.reports.include_pending' => 'in afwachting',
 'form.reports.select_period' => 'Kies periode',
 'form.reports.set_period' => 'of stel datums in',
 'form.reports.show_fields' => 'Toon velden',
@@ -357,12 +418,20 @@ $i18n_key_words = array(
 'form.reports.group_by_client' => 'klant',
 'form.reports.group_by_project' => 'project',
 'form.reports.group_by_task' => 'taak',
-'form.reports.totals_only' => 'Alleen totalen',
 
 // Report form. See example at https://timetracker.anuko.com/report.php
 // (after generating a report at https://timetracker.anuko.com/reports.php).
 'form.report.export' => 'Exporteer',
 'form.report.assign_to_invoice' => 'Voeg toe aan factuur',
+'form.report.assign_to_timesheet' => 'Wijs toe aan tijdenoverzicht',
+
+// Timesheets form. See example at https://timetracker.anuko.com/timesheets.php
+'form.timesheets.active_timesheets' => 'Actieve tijdenoverzichten',
+'form.timesheets.inactive_timesheets' => 'Inactieve tijdenoverzichten',
+
+// Templates form. See example at https://timetracker.anuko.com/templates.php
+'form.templates.active_templates' => 'Actieve sjablonen',
+'form.templates.inactive_templates' => 'Inactieve sjablonen',
 
 // Invoice form. See example at https://timetracker.anuko.com/invoice.php
 // (you can get to this form after generating a report).
@@ -416,20 +485,18 @@ $i18n_key_words = array(
 'form.client.client_entries' => 'Klant gegevens',
 
 // Exporting Group Data form. See example at https://timetracker.anuko.com/export.php
-// TODO: replace "team" with "group" in the string below.
-'form.export.hint' => 'U kunt alle teamgegevens naar een xml bestand exporteren. Dit kan zinvol zijn als u gegevens migreert naar uw eigen server.',
+'form.export.hint' => 'U kunt alle groepsgegevens naar een xml bestand exporteren. Dit kan zinvol zijn als u gegevens migreert naar uw eigen server.',
 'form.export.compression' => 'Compressie',
 'form.export.compression_none' => 'geen',
 'form.export.compression_bzip' => 'bzip',
 
-// Importing Group Data form. See example at https://timetracker.anuko.com/imort.php (login as admin first).
-'form.import.hint' => 'Importeer teamgegevens uit een xml bestand.', // TODO: replace "team" with "group".
+// Importing Group Data form. See example at https://timetracker.anuko.com/import.php (login as admin first).
+'form.import.hint' => 'Importeer groepsgegevens uit een xml bestand.',
 'form.import.file' => 'Kies bestand',
 'form.import.success' => 'Importeren gelukt.',
 
 // Groups form. See example at https://timetracker.anuko.com/admin_groups.php (login as admin first).
-// TODO: replace "team" with "group" in the string below (3 places).
-'form.groups.hint' => 'Maak een nieuw team door een team  manager account aan te maken.<br>U kunt ook teamgegevens importeren uit een xml file van een andere Anuko Time Tracker server (login namen moeten uniek zijn).',
+'form.groups.hint' => 'Maak een nieuwe groep door een groeps manager account aan te maken.<br>U kunt ook groepsgegevens importeren uit een xml file van een andere Anuko Time Tracker server (login namen moeten uniek zijn).',
 
 // Group Settings form. See example at https://timetracker.anuko.com/group_edit.php.
 'form.group_edit.12_hours' => '12 uurs',
@@ -447,12 +514,11 @@ $i18n_key_words = array(
 'form.group_edit.allow_overlap' => 'Sta overlapping van tijden toe',
 'form.group_edit.future_entries' => 'Toevoegingen toestaan in de toekomst',
 'form.group_edit.uncompleted_indicators' => 'Onvolledige indicatoren',
+'form.group_edit.confirm_save' => 'Bevestig dat je wilt opslaan',
 'form.group_edit.allow_ip' => 'Toegestane IP adressen',
-'form.group_edit.plugins' => 'Plugins',
 
 // Deleting Group form. See example at https://timetracker.anuko.com/delete_group.php
-// TODO: translate the following.
-// 'form.group_delete.hint' => 'Are you sure you want to delete the entire group?',
+'form.group_delete.hint' => 'Bent u er zeker van dat u de hele groep wilt verwijderen?',
 
 // Mail form. See example at https://timetracker.anuko.com/report_send.php when emailing a report.
 'form.mail.from' => 'Van',
@@ -465,7 +531,6 @@ $i18n_key_words = array(
 // Quotas configuration form. See example at https://timetracker.anuko.com/quotas.php after enabling Monthly quotas plugin.
 'form.quota.year' => 'Jaar',
 'form.quota.month' => 'Maand',
-'form.quota.quota' => 'Quota',
 'form.quota.workday_hours' => 'Werkuren per dag',
 'form.quota.hint' => 'Als de velden leeg worden gelaten, dan zullen de doelen worden berekend op bassis van het aantal werkuren per dag en vakantiedagen.',
 
@@ -473,13 +538,17 @@ $i18n_key_words = array(
 'form.swap.hint' => 'Degradeer jezelf naar een lagere rol door een rol te verruilen met iemand anders. Dit kan niet ongedaan worden gemaakt.',
 'form.swap.swap_with' => 'Verruil rol met',
 
+// Work Units configuration form. See example at https://timetracker.anuko.com/work_units.php after enabling Work units plugin.
+'form.work_units.minutes_in_unit' => 'Minuten per eenheid',
+'form.work_units.1st_unit_threshold' => 'Drempel eerste eenheid',
+
 // Roles and rights. These strings are used in multiple places. Grouped here to provide consistent translations.
 'role.user.label' => 'Gebruiker',
 'role.user.low_case_label' => 'gebruiker',
 'role.user.description' => 'Een gebruiker zonder beheer rechten.',
 'role.client.label' => 'Klant',
 'role.client.low_case_label' => 'klant',
-'role.client.description' => 'Een klant kan zijn eigen rapporten, grafieken en facturen inzien.',
+'role.client.description' => 'Een klant kan zijn eigen data inzien.',
 'role.supervisor.label' => 'Supervisor',
 'role.supervisor.low_case_label' => 'supervisor',
 'role.supervisor.description' => 'Een persoon met beperkte beheer rechten.',
@@ -495,4 +564,12 @@ $i18n_key_words = array(
 'role.admin.label' => 'Administrator',
 'role.admin.low_case_label' => 'administrator',
 'role.admin.description' => 'Time Tracker beheerder.',
+
+// Timesheet View form. See example at https://timetracker.anuko.com/timesheet_view.php.
+'form.timesheet_view.submit_subject' => 'Verzoek goedkeuring tijdenoverzicht',
+'form.timesheet_view.submit_body' => "Een nieuw tijdenoverzicht vereist goedkeuring.<p>User: %s.",
+'form.timesheet_view.approve_subject' => 'Tijdenoverzicht goedgekeurd',
+'form.timesheet_view.approve_body' => "Jouw tijdenoverzicht %s is goedgekeurd.<p>%s",
+'form.timesheet_view.disapprove_subject' => 'Tijdenoverzicht afgekeurd',
+'form.timesheet_view.disapprove_body' => "Jouw tijdenoverzicht %s is afgekeurd.<p>%s",
 );

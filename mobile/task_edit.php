@@ -28,7 +28,7 @@
 
 require_once('../initialize.php');
 import('form.Form');
-import('ttTeamHelper');
+import('ttGroupHelper');
 import('ttTaskHelper');
 
 // Access checks.
@@ -48,7 +48,7 @@ if (!$task) {
 }
 // End of access checks.
 
-$projects = ttTeamHelper::getActiveProjects($user->group_id);
+$projects = ttGroupHelper::getActiveProjects();
 
 if ($request->isPost()) {
   $cl_name = trim($request->getParameter('name'));
@@ -97,13 +97,12 @@ if ($request->isPost()) {
         } else
           $err->add($i18n->get('error.db'));
       } else
-        $err->add($i18n->get('error.task_exists'));
+        $err->add($i18n->get('error.object_exists'));
     }
 
     if ($request->getParameter('btn_copy')) {
       if (!ttTaskHelper::getTaskByName($cl_name)) {
         if (ttTaskHelper::insert(array(
-          'group_id' => $user->group_id,
           'name' => $cl_name,
           'description' => $cl_description,
           'status' => $cl_status,
@@ -113,7 +112,7 @@ if ($request->isPost()) {
         } else
           $err->add($i18n->get('error.db'));
       } else
-        $err->add($i18n->get('error.task_exists'));
+        $err->add($i18n->get('error.object_exists'));
     }
     
     if ($request->getParameter('btn_delete')) {

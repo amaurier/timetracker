@@ -147,9 +147,9 @@ class ttTimeHelper {
 
     // Handle localized fractional hours.
     global $user;
-    $localizedPattern = '/^(\d{1,3})?['.$user->decimal_mark.'][0-9]{1,4}h?$/';
+    $localizedPattern = '/^(\d{1,3})?['.$user->getDecimalMark().'][0-9]{1,4}h?$/';
     if (preg_match($localizedPattern, $duration )) { // decimal values like .5, 1.25h, ... .. 999.9999h (or with comma)
-        if ($user->decimal_mark == ',')
+        if ($user->getDecimalMark() == ',')
           $duration = str_replace (',', '.', $duration);
 
         $minutes = (int)round(60 * floatval($duration));
@@ -383,13 +383,15 @@ class ttTimeHelper {
     return false;
   }
 
-  // insert - inserts a time record into log table. Does not deal with custom fields.
+  // insert - inserts a time record into tt_log table. Does not deal with custom fields.
   static function insert($fields)
   {
     global $user;
     $mdb2 = getConnection();
 
-    $user_id = $fields['user_id'];
+    $user_id = (int) $fields['user_id'];
+    $group_id = (int) $fields['group_id'];
+    $org_id = (int) $fields['org_id'];
     $date = $fields['date'];
     $start = $fields['start'];
     $finish = $fields['finish'];
@@ -416,14 +418,14 @@ class ttTimeHelper {
       if ('00:00' == $finish) $finish = '24:00';
     }
 
-    $created_v = ', now(), '.$mdb2->quote($_SERVER['REMOTE_ADDR']).', '.$mdb2->quote($user->id);
+    $created_v = ', now(), '.$mdb2->quote($_SERVER['REMOTE_ADDR']).', '.$user->id;
 
     if (!$billable) $billable = 0;
     if (!$paid) $paid = 0;
 
     if ($duration) {
-      $sql = "insert into tt_log (user_id, date, duration, client_id, project_id, task_id, invoice_id, comment, billable, paid, created, created_ip, created_by $status_f) ".
-        "values ($user_id, ".$mdb2->quote($date).", '$duration', ".$mdb2->quote($client).", ".$mdb2->quote($project).", ".$mdb2->quote($task).", ".$mdb2->quote($invoice).", ".$mdb2->quote($note).", $billable, $paid $created_v $status_v)";
+      $sql = "insert into tt_log (user_id, group_id, org_id, date, duration, client_id, project_id, task_id, invoice_id, comment, billable, paid, created, created_ip, created_by $status_f) ".
+        "values ($user_id, $group_id, $org_id, ".$mdb2->quote($date).", '$duration', ".$mdb2->quote($client).", ".$mdb2->quote($project).", ".$mdb2->quote($task).", ".$mdb2->quote($invoice).", ".$mdb2->quote($note).", $billable, $paid $created_v $status_v)";
       $affected = $mdb2->exec($sql);
       if (is_a($affected, 'PEAR_Error'))
         return false;
@@ -432,8 +434,8 @@ class ttTimeHelper {
       if ($duration === false) $duration = 0;
       if (!$duration && ttTimeHelper::getUncompleted($user_id)) return false;
 
-      $sql = "insert into tt_log (user_id, date, start, duration, client_id, project_id, task_id, invoice_id, comment, billable, paid, created, created_ip, created_by $status_f) ".
-        "values ($user_id, ".$mdb2->quote($date).", '$start', '$duration', ".$mdb2->quote($client).", ".$mdb2->quote($project).", ".$mdb2->quote($task).", ".$mdb2->quote($invoice).", ".$mdb2->quote($note).", $billable, $paid $created_v $status_v)";
+      $sql = "insert into tt_log (user_id, group_id, org_id, date, start, duration, client_id, project_id, task_id, invoice_id, comment, billable, paid, created, created_ip, created_by $status_f) ".
+        "values ($user_id, $group_id, $org_id, ".$mdb2->quote($date).", '$start', '$duration', ".$mdb2->quote($client).", ".$mdb2->quote($project).", ".$mdb2->quote($task).", ".$mdb2->quote($invoice).", ".$mdb2->quote($note).", $billable, $paid $created_v $status_v)";
       $affected = $mdb2->exec($sql);
       if (is_a($affected, 'PEAR_Error'))
         return false;
@@ -472,7 +474,7 @@ class ttTimeHelper {
     if ($user->can('manage_invoices') && $user->isPluginEnabled('ps')) {
       $paid_part = $fields['paid'] ? ', paid = 1' : ', paid = 0';
     }
-    $modified_part = ', modified = now(), modified_ip = '.$mdb2->quote($_SERVER['REMOTE_ADDR']).', modified_by = '.$mdb2->quote($user->id);
+    $modified_part = ', modified = now(), modified_ip = '.$mdb2->quote($_SERVER['REMOTE_ADDR']).', modified_by = '.$user->id;
 
     $start = ttTimeHelper::to24HourFormat($start);
     $finish = ttTimeHelper::to24HourFormat($finish);
@@ -504,15 +506,22 @@ class ttTimeHelper {
   }
 
   // delete - deletes a record from tt_log table and its associated custom field values.
-  static function delete($id, $user_id) {
+  static function delete($id) {
+    global $user;
     $mdb2 = getConnection();
 
-    $sql = "update tt_log set status = NULL where id = $id and user_id = $user_id";
+    $user_id = $user->getUser();
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $sql = "update tt_log set status = null".
+      " where id = $id and user_id = $user_id and group_id = $group_id and org_id = $org_id";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
 
-    $sql = "update tt_custom_field_log set status = NULL where log_id = $id";
+    $sql = "update tt_custom_field_log set status = null".
+      " where log_id = $id and group_id = $group_id and org_id = $org_id";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error'))
       return false;
@@ -521,10 +530,16 @@ class ttTimeHelper {
   }
 
   // getTimeForDay - gets total time for a user for a specific date.
-  static function getTimeForDay($user_id, $date) {
+  static function getTimeForDay($date) {
+    global $user;
     $mdb2 = getConnection();
 
-    $sql = "select sum(time_to_sec(duration)) as sm from tt_log where user_id = $user_id and date = '$date' and status = 1";
+    $user_id = $user->getUser();
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $sql = "select sum(time_to_sec(duration)) as sm from tt_log".
+      " where user_id = $user_id and group_id = $group_id and org_id = $org_id and date = '$date' and status = 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       $val = $res->fetchRow();
@@ -534,33 +549,47 @@ class ttTimeHelper {
   }
 
   // getTimeForWeek - gets total time for a user for a given week.
-  static function getTimeForWeek($user_id, $date) {
+  static function getTimeForWeek($date) {
+    global $user;
     import('Period');
     $mdb2 = getConnection();
 
+    $user_id = $user->getUser();
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     $period = new Period(INTERVAL_THIS_WEEK, $date);
-    $sql = "select sum(time_to_sec(duration)) as sm from tt_log where user_id = $user_id and date >= '".$period->getStartDate(DB_DATEFORMAT)."' and date <= '".$period->getEndDate(DB_DATEFORMAT)."' and status = 1";
+    $sql = "select sum(time_to_sec(duration)) as sm from tt_log".
+      " where user_id = $user_id and group_id = $group_id and org_id = $org_id".
+      " and date >= '".$period->getStartDate(DB_DATEFORMAT)."' and date <= '".$period->getEndDate(DB_DATEFORMAT)."' and status = 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       $val = $res->fetchRow();
       return sec_to_time_fmt_hm($val['sm']);
     }
-    return 0;
+    return false;
   }
 
   // getTimeForMonth - gets total time for a user for a given month.
-  static function getTimeForMonth($user_id, $date){
+  static function getTimeForMonth($date) {
+    global $user;
     import('Period');
     $mdb2 = getConnection();
 
+    $user_id = $user->getUser();
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     $period = new Period(INTERVAL_THIS_MONTH, $date);
-    $sql = "select sum(time_to_sec(duration)) as sm from tt_log where user_id = $user_id and date >= '".$period->getStartDate(DB_DATEFORMAT)."' and date <= '".$period->getEndDate(DB_DATEFORMAT)."' and status = 1";
+    $sql = "select sum(time_to_sec(duration)) as sm from tt_log".
+      " where user_id = $user_id and group_id = $group_id and org_id = $org_id".
+      " and date >= '".$period->getStartDate(DB_DATEFORMAT)."' and date <= '".$period->getEndDate(DB_DATEFORMAT)."' and status = 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       $val = $res->fetchRow();
       return sec_to_time_fmt_hm($val['sm']);
     }
-    return 0;
+    return false;
   }
 
   // getUncompleted - retrieves an uncompleted record for user, if one exists.
@@ -630,22 +659,58 @@ class ttTimeHelper {
   }
 
   // getRecord - retrieves a time record identified by its id.
-  static function getRecord($id, $user_id) {
+  static function getRecord($id) {
     global $user;
+
+    $user_id = $user->getUser();
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     $sql_time_format = "'%k:%i'"; //  24 hour format.
     if ('%I:%M %p' == $user->time_format)
       $sql_time_format = "'%h:%i %p'"; // 12 hour format for MySQL TIME_FORMAT function.
 
     $mdb2 = getConnection();
 
-    $sql = "select l.id as id, TIME_FORMAT(l.start, $sql_time_format) as start,
-      TIME_FORMAT(sec_to_time(time_to_sec(l.start) + time_to_sec(l.duration)), $sql_time_format) as finish,
-      TIME_FORMAT(l.duration, '%k:%i') as duration,
-      p.name as project_name, t.name as task_name, l.comment, l.client_id, l.project_id, l.task_id, l.invoice_id, l.billable, l.paid, l.date
-      from tt_log l
-      left join tt_projects p on (p.id = l.project_id)
-      left join tt_tasks t on (t.id = l.task_id)
-      where l.id = $id and l.user_id = $user_id and l.status = 1";
+    $sql = "select l.id as id, TIME_FORMAT(l.start, $sql_time_format) as start,".
+      " TIME_FORMAT(sec_to_time(time_to_sec(l.start) + time_to_sec(l.duration)), $sql_time_format) as finish,".
+      " TIME_FORMAT(l.duration, '%k:%i') as duration,".
+      " p.name as project_name, t.name as task_name, l.comment, l.client_id, l.project_id, l.task_id,".
+      " l.timesheet_id, l.invoice_id, l.billable, l.approved, l.paid, l.date from tt_log l".
+      " left join tt_projects p on (p.id = l.project_id)".
+      " left join tt_tasks t on (t.id = l.task_id)".
+      " where l.id = $id and l.user_id = $user_id and l.group_id = $group_id and l.org_id = $org_id and l.status = 1";
+    $res = $mdb2->query($sql);
+    if (!is_a($res, 'PEAR_Error')) {
+      if (!$res->numRows()) {
+        return false;
+      }
+      if ($val = $res->fetchRow()) {
+        return $val;
+      }
+    }
+    return false;
+  }
+
+  // getRecordForFileView - retrieves a time record identified by its id for
+  // attachment view operation.
+  //
+  // It is different from getRecord, as we want users with appropriate rights
+  // to be able to see other users files, without changing "on behalf" user.
+  // For example, viewing reports for all users and their attached files
+  // from report links.
+  static function getRecordForFileView($id) {
+    // TODO: code this function properly. There are no security checks now.
+    global $user;
+
+    // $user_id = $user->getUser();
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $mdb2 = getConnection();
+
+    $sql = "select l.id, l.timesheet_id, l.invoice_id, l.approved from tt_log l".
+      " where l.id = $id and l.group_id = $group_id and l.org_id = $org_id and l.status = 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       if (!$res->numRows()) {
@@ -682,12 +747,14 @@ class ttTimeHelper {
   // getRecords - returns time records for a user for a given date.
   static function getRecords($user_id, $date) {
     global $user;
-    $sql_time_format = "'%k:%i'"; //  24 hour format.
-    if ('%I:%M %p' == $user->time_format)
-      $sql_time_format = "'%h:%i %p'"; // 12 hour format for MySQL TIME_FORMAT function.
-
-    $result = array();
     $mdb2 = getConnection();
+
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $sql_time_format = "'%k:%i'"; //  24 hour format.
+    if ('%I:%M %p' == $user->getTimeFormat())
+      $sql_time_format = "'%h:%i %p'"; // 12 hour format for MySQL TIME_FORMAT function.
 
     $client_field = null;
     if ($user->isPluginEnabled('cl'))
@@ -698,13 +765,13 @@ class ttTimeHelper {
     if ($user->isPluginEnabled('cl'))
       $left_joins .= " left join tt_clients c on (l.client_id = c.id)";
 
-    $sql = "select l.id as id, TIME_FORMAT(l.start, $sql_time_format) as start,
-      TIME_FORMAT(sec_to_time(time_to_sec(l.start) + time_to_sec(l.duration)), $sql_time_format) as finish,
-      TIME_FORMAT(l.duration, '%k:%i') as duration, p.name as project, t.name as task, l.comment, l.billable, l.invoice_id $client_field
-      from tt_log l
-      $left_joins
-      where l.date = '$date' and l.user_id = $user_id and l.status = 1
-      order by l.start, l.id";
+    $result = array();
+    $sql = "select l.id as id, TIME_FORMAT(l.start, $sql_time_format) as start,".
+      " TIME_FORMAT(sec_to_time(time_to_sec(l.start) + time_to_sec(l.duration)), $sql_time_format) as finish,".
+      " TIME_FORMAT(l.duration, '%k:%i') as duration, p.name as project, t.name as task, l.comment,".
+      " l.billable, l.approved, l.timesheet_id, l.invoice_id $client_field from tt_log l $left_joins".
+      " where l.date = '$date' and l.user_id = $user_id and l.group_id = $group_id and l.org_id = $org_id and l.status = 1".
+      " order by l.start, l.id";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       while ($val = $res->fetchRow()) {
@@ -715,5 +782,66 @@ class ttTimeHelper {
     } else return false;
 
     return $result;
+  }
+
+  // getRecordsWithFiles - returns time records for a user for a given date
+  // with information whether they have attached files (has_files property).
+  // A separate fiunction from getRecords because sql here is more complex.
+  static function getRecordsWithFiles($user_id, $date) {
+    global $user;
+    $mdb2 = getConnection();
+
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $sql_time_format = "'%k:%i'"; //  24 hour format.
+    if ('%I:%M %p' == $user->getTimeFormat())
+      $sql_time_format = "'%h:%i %p'"; // 12 hour format for MySQL TIME_FORMAT function.
+
+    $client_field = null;
+    if ($user->isPluginEnabled('cl'))
+      $client_field = ", c.name as client";
+
+    $left_joins = " left join tt_projects p on (l.project_id = p.id)".
+      " left join tt_tasks t on (l.task_id = t.id)";
+    if ($user->isPluginEnabled('cl'))
+      $left_joins .= " left join tt_clients c on (l.client_id = c.id)";
+
+    $left_joins .= " left join (select distinct entity_id from tt_files".
+      " where entity_type = 'time' and group_id = $group_id and org_id = $org_id and status = 1) Sub1".
+      " on (l.id = Sub1.entity_id)";
+
+    $result = array();
+    $sql = "select l.id as id, TIME_FORMAT(l.start, $sql_time_format) as start,".
+      " TIME_FORMAT(sec_to_time(time_to_sec(l.start) + time_to_sec(l.duration)), $sql_time_format) as finish,".
+      " TIME_FORMAT(l.duration, '%k:%i') as duration, p.name as project, t.name as task, l.comment,".
+      " if(Sub1.entity_id is null, 0, 1) as has_files,".
+      " l.billable, l.approved, l.timesheet_id, l.invoice_id $client_field from tt_log l $left_joins".
+      " where l.date = '$date' and l.user_id = $user_id and l.group_id = $group_id and l.org_id = $org_id and l.status = 1".
+      " order by l.start, l.id";
+    $res = $mdb2->query($sql);
+    if (!is_a($res, 'PEAR_Error')) {
+      while ($val = $res->fetchRow()) {
+        if($val['duration']=='0:00')
+          $val['finish'] = '';
+        $result[] = $val;
+      }
+    } else return false;
+
+    return $result;
+  }
+
+  // canAdd determines if we can add a record in case there is a limit.
+  static function canAdd() {
+    $mdb2 = getConnection();
+    $sql = "select param_value from tt_site_config where param_name = 'exp_date'";
+    $res = $mdb2->query($sql);
+    $val = $res->fetchRow();
+    if (!$val) return true; // No expiration date.
+
+    if (strtotime($val['param_value']) > time())
+      return true; // Expiration date exists but not reached.
+
+    return false;
   }
 }

@@ -1,27 +1,37 @@
-version: "3.5"
+# This file is for development work. Not suitable for production.
+version: '3.7'
+
 services:
-  web:
-    image: nginx:latest
+  # anuko_tt is a web application built as per dockerfile specification.
+  anuko_tt:
+    build:
+      context: .
+      dockerfile: dockerfile-tt
+    image: anuko_timetracker:dev
+    container_name: anuko-timetracker
+    # Use localhost:8080 to connect to timetracker via browser.
     ports:
-      - "8080:80"
-    volumes:
-      - type: bind
-        source: ./docker/nginx/default.conf
-        target: /etc/nginx/conf.d/default.conf
-      - type: bind
-        source: ./
-        target: /usr/share/nginx/html
-  php:
-    build: ./docker/php
-    volumes:
-      - type: bind
-        source: ./
-        target: /usr/share/nginx/html
-  data:
-    image: mariadb
-    restart: always
+     - "8080:80"
+
+  # anuko_db is a mariadb instance to which timetracker connects.
+  # Connect parameters are also specified in timetracker dockerfile after
+  # creation of its configuration file. Specifically, we replace
+  # user name, password, service name (aka resolvable to IP server name
+  # where mariadb runs), and database name there from the defaults.
+  # These two sets of credentials must match for a successful connect.
+  anuko_db:
+    build:
+      context: .
+      dockerfile: dockerfile-db
+    image: "anuko_database:dev"
+    container_name: anuko-database
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: timetracker
+      MYSQL_USER: anuko_user
+      MYSQL_PASSWORD: anuko_pw
+    volumes:
+      - anuko_db:/var/lib/mysql
+
+volumes:
+   anuko_db:

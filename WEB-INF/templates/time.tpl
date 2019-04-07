@@ -18,10 +18,10 @@
   <tr>
     <td valign="top">
       <table>
-{if $on_behalf_control}
+{if $user_dropdown}
         <tr>
           <td align="right">{$i18n.label.user}:</td>
-          <td>{$forms.timeRecordForm.onBehalfUser.control}</td>
+          <td>{$forms.timeRecordForm.user.control}</td>
         </tr>
 {/if}
 {if $user->isPluginEnabled('cl')}
@@ -66,7 +66,13 @@
 {if (($smarty.const.TYPE_DURATION == $user->record_type) || ($smarty.const.TYPE_ALL == $user->record_type))}
         <tr>
           <td align="right">{$i18n.label.duration}:</td>
-          <td>{$forms.timeRecordForm.duration.control}&nbsp;{if $user->decimal_mark == ','}{str_replace('.', ',', $i18n.form.time.duration_format)}{else}{$i18n.form.time.duration_format}{/if}</td>
+          <td>{$forms.timeRecordForm.duration.control}&nbsp;{if $user->getDecimalMark() == ','}{str_replace('.', ',', $i18n.form.time.duration_format)}{else}{$i18n.form.time.duration_format}{/if}</td>
+        </tr>
+{/if}
+{if $template_dropdown}
+        <tr>
+          <td align="right">{$i18n.label.template}:</td>
+          <td>{$forms.timeRecordForm.template.control}</td>
         </tr>
 {/if}
       </table>
@@ -110,7 +116,11 @@
   {/if}
         <td width="5%" class="tableHeader">{$i18n.label.duration}</td>
         <td class="tableHeader">{$i18n.label.note}</td>
-        <td width="5%" class="tableHeader">{$i18n.label.edit}</td>
+        <td></td>
+        <td></td>
+  {if $show_files}
+        <td></td>
+  {/if}
       </tr>
   {foreach $time_records as $record}
       <tr bgcolor="{cycle values="#f5f5f5,#ffffff"}" {if !$record.billable} class="not_billable" {/if}>
@@ -129,17 +139,31 @@
     {/if}
         <td align="right" valign="top">{if ($record.duration == '0:00' && $record.start <> '')}<font color="#ff0000">{$i18n.form.time.uncompleted}</font>{else}{$record.duration}{/if}</td>
         <td valign="top">{if $record.comment}{$record.comment|escape}{else}&nbsp;{/if}</td>
+    {if $show_files}
+      {if $record.has_files}
+        <td valign="top" align="center"><a href="time_files.php?id={$record.id}"><img class="table_icon" alt="{$i18n.label.files}" src="images/icon_files.png"></a></td>
+      {else}
+        <td valign="top" align="center"><a href="time_files.php?id={$record.id}"><img class="table_icon" alt="{$i18n.label.files}" src="images/icon_file.png"></a></td>
+      {/if}
+    {/if}
         <td valign="top" align="center">
-    {if $record.invoice_id}
+    {if $record.approved || $record.timesheet_id || $record.invoice_id}
           &nbsp;
     {else}
-          <a href="time_edit.php?id={$record.id}">{$i18n.label.edit}</a>
+          <a href="time_edit.php?id={$record.id}"><img class="table_icon" alt="{$i18n.label.edit}" src="images/icon_edit.png"></a>
       {if ($record.duration == '0:00' && $record.start <> '')}
           <input type="hidden" name="record_id" value="{$record.id}">
           <input type="hidden" name="browser_date" value="">
           <input type="hidden" name="browser_time" value="">
           <input type="submit" id="btn_stop" name="btn_stop" onclick="browser_date.value=get_date();browser_time.value=get_time()" value="{$i18n.button.stop}">
       {/if}
+    {/if}
+        </td>
+        <td valign="top" align="center">
+    {if $record.approved || $record.timesheet_id || $record.invoice_id}
+          &nbsp;
+    {else}
+          <a href="time_delete.php?id={$record.id}"><img class="table_icon" alt="{$i18n.label.delete}" src="images/icon_delete.png"></a>
     {/if}
         </td>
       </tr>
@@ -149,7 +173,7 @@
   </td>
 </tr>
 </table>
-{if $time_records}
+
 <table cellpadding="3" cellspacing="1" width="720">
   <tr>
     <td align="left">{$i18n.label.week_total}: {$week_total}</td>
@@ -158,6 +182,14 @@
   {if $user->isPluginEnabled('mq')}
   <tr>
     <td align="left">{$i18n.label.month_total}: {$month_total}</td>
+    {if $over_balance}
+    <td align="right">{$i18n.form.time.over_balance}: <span style="color: green;">{$balance_remaining}</span></td>
+    {else}
+    <td align="right">{$i18n.form.time.remaining_balance}: <span style="color: red;">{$balance_remaining}</span></td>
+    {/if}
+  </tr>
+  <tr>
+    <td align="left">{$i18n.label.quota}: {$month_quota}</td>
     {if $over_quota}
     <td align="right">{$i18n.form.time.over_quota}: <span style="color: green;">{$quota_remaining}</span></td>
     {else}
@@ -166,5 +198,5 @@
   </tr>
   {/if}
 </table>
-{/if}
+
 {$forms.timeRecordForm.close}

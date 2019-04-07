@@ -29,12 +29,14 @@
 require_once('initialize.php');
 import('form.Form');
 import('ttUserHelper');
+import('ttAdmin');
 
 // Access check.
 if (!ttAccessAllowed('administer_site')) {
   header('Location: access_denied.php');
   exit();
 }
+// End of access checks.
 
 if ($request->isPost()) {
   $cl_name = trim($request->getParameter('name'));
@@ -61,18 +63,30 @@ $form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'email','value'=
 $form->addInput(array('type'=>'submit','name'=>'btn_submit','value'=>$i18n->get('button.submit')));
 
 if ($request->isPost()) {
-  // Create fields array for ttAdmin instance.
-  $fields = array(
-    'name' => $cl_name,
+  // Validate user input.
+  if (!ttValidString($cl_name))
+    $err->add($i18n->get('error.field'), $i18n->get('label.person_name'));
+  if (!ttValidString($cl_login))
+    $err->add($i18n->get('error.field'), $i18n->get('label.login'));
+  // If we change login, it must be unique.
+  if ($cl_login != $user->login && ttUserHelper::getUserByLogin($cl_login))
+    $err->add($i18n->get('error.user_exists'));
+  if (!$auth->isPasswordExternal() && ($cl_password1 || $cl_password2)) {
+      if (!ttValidString($cl_password1))
+        $err->add($i18n->get('error.field'), $i18n->get('label.password'));
+      if (!ttValidString($cl_password2))
+        $err->add($i18n->get('error.field'), $i18n->get('label.confirm_password'));
+      if ($cl_password1 !== $cl_password2)
+        $err->add($i18n->get('error.not_equal'), $i18n->get('label.password'), $i18n->get('label.confirm_password'));
+    }
+  if (!ttValidEmail($cl_email, true))
+    $err->add($i18n->get('error.field'), $i18n->get('label.email'));
+
+  if ($err->no() && ttAdmin::updateSelf(array('name' => $cl_name,
     'login' => $cl_login,
     'password1' => $cl_password1,
     'password2' => $cl_password2,
-    'email' => $cl_email);
-
-  import('ttAdmin');
-  $admin = new ttAdmin($err);
-  $result = $admin->updateSelf($fields);
-  if ($result) {
+    'email' => $cl_email))) {
     header('Location: admin_groups.php');
     exit();
   }

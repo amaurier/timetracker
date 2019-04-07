@@ -29,6 +29,7 @@
 require_once('initialize.php');
 import('form.Form');
 import('ttTeamHelper');
+import('ttGroupHelper');
 import('ttInvoiceHelper');
 
 // Access checks.
@@ -56,12 +57,13 @@ $form->addInput(array('type'=>'datefield','name'=>'date','size'=>'20','value'=>$
 
 // Dropdown for clients if the clients plugin is enabled.
 if ($user->isPluginEnabled('cl')) {
-  $clients = ttTeamHelper::getActiveClients($user->group_id);
+  $clients = ttGroupHelper::getActiveClients();
   $form->addInput(array('type'=>'combobox','name'=>'client','style'=>'width: 250px;','data'=>$clients,'datakeys'=>array('id','name'),'value'=>$cl_client,'empty'=>array(''=>$i18n->get('dropdown.select'))));
 }
 // Dropdown for projects.
-if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->tracking_mode) {
-  $projects = ttTeamHelper::getActiveProjects($user->group_id);
+$show_project = MODE_PROJECTS == $user->getTrackingMode() || MODE_PROJECTS_AND_TASKS == $user->getTrackingMode();
+if ($show_project) {
+  $projects = ttGroupHelper::getActiveProjects();
   $form->addInput(array('type'=>'combobox','name'=>'project','style'=>'width: 250px;','data'=>$projects,'datakeys'=>array('id','name'),'value'=>$cl_project,'empty'=>array(''=>$i18n->get('dropdown.all'))));
 }
 $form->addInput(array('type'=>'text','maxlength'=>'100','name'=>'number','style'=>'width: 250px;','value'=>$cl_number));
@@ -99,6 +101,7 @@ if ($request->isPost()) {
 
 $smarty->assign('forms', array($form->getName()=>$form->toArray()));
 $smarty->assign('onload', 'onLoad="document.invoiceForm.number.focus()"');
+$smarty->assign('show_project', $show_project);
 $smarty->assign('title', $i18n->get('title.add_invoice'));
 $smarty->assign('content_page_name', 'invoice_add.tpl');
 $smarty->display('index.tpl');

@@ -165,7 +165,7 @@ function check_extension($ext)
 // isTrue is a helper function to return correct false for older config.php values defined as a string 'false'.
 function isTrue($val)
 {
-  return ($val == false || $val === 'false') ? false : true;
+  return (defined($val) && constant($val) === true);
 }
 
 // ttValidString is used to check user input to validate a string.
@@ -180,6 +180,15 @@ function ttValidString($val, $emptyValid = false)
     return false;
     
   return true;    
+}
+
+// ttValidTemplateText is used to check template-based user input.
+// When templates are used, required input parts must be filled by user.
+// We identify these parts by 3 "stop sign" emojis (aka "octagonal sign" U+1F6D1).
+function ttValidTemplateText($val)
+{
+  $valid = strpos($val, '🛑🛑🛑') === false; // no 3 "stop sign" emojis in a row.
+  return $valid;
 }
 
 // ttValidEmail is used to check user input to validate an email string.
@@ -226,7 +235,7 @@ function ttValidFloat($val, $emptyValid = false)
     return ($emptyValid ? true : false);
     
   global $user;
-  $decimal = $user->decimal_mark;
+  $decimal = $user->getDecimalMark();
 	
   if (!preg_match('/^-?[0-9'.$decimal.']+$/', $val))
     return false;
@@ -319,7 +328,7 @@ function ttValidCondition($val, $emptyValid = true)
   if (stristr($val, '<script>') || stristr($val, '<script '))
     return false;
 
-  if (!preg_match("/^count\s?>\s?\d+$/", $val))
+  if (!preg_match("/^count\s?(=|[<>]=?|<>)\s?\d+$/", $val))
     return false;
 
   return true;
@@ -382,4 +391,38 @@ function ttAccessAllowed($required_right)
   }
 
   return false;
+}
+
+// ttStartsWith functions checks if a string starts with a given substring.
+function ttStartsWith($string, $startString)
+{
+    $len = strlen($startString);
+    return (substr($string, 0, $len) === $startString);
+}
+
+// ttEndsWith functions checks if a string ends with a given substring.
+function ttEndsWith($string, $endString)
+{
+    $len = strlen($endString);
+    if ($len == 0) return true;
+    return (substr($string, -$len) === $endString);
+}
+
+// ttDateToUserFormat converts a date from database format to user format.
+function ttDateToUserFormat($date)
+{
+  global $user;
+  $o_date = new DateAndTime(DB_DATEFORMAT, $date);
+  return $o_date->toString($user->date_format);
+}
+
+// ttRandomString generates a random alphanumeric string.
+function ttRandomString($length = 32) {
+  $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  $charactersLength = strlen($characters);
+  $randomString = '';
+  for ($i = 0; $i < $length; $i++) {
+    $randomString .= $characters[rand(0, $charactersLength - 1)];
+  }
+  return $randomString;
 }

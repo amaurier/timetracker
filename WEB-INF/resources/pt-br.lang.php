@@ -49,15 +49,19 @@ $i18n_key_words = array(
 'menu.profile' => 'Perfil',
 // TODO: translate the following.
 // 'menu.group' => 'Group',
+'menu.plugins' => 'Plugins',
 'menu.time' => 'Tempo',
 'menu.expenses' => 'Gastos',
 'menu.reports' => 'Relatórios',
+// TODO: translate the following.
+// 'menu.timesheets' => 'Timesheets',
 'menu.charts' => 'Gráficos',
 'menu.projects' => 'Projetos',
 'menu.tasks' => 'Tarefas',
 'menu.users' => 'Usuários',
 // TODO: translate the following.
 // 'menu.groups' => 'Groups',
+// 'menu.subgroups' => 'Subgroups',
 'menu.export' => 'Exportar',
 'menu.clients' => 'Clientes',
 'menu.options' => 'Opções',
@@ -89,23 +93,40 @@ $i18n_key_words = array(
 'error.user_exists' => 'Já existe usuário com este login.',
 // TODO: translate the following.
 // 'error.object_exists' => 'Object with this name already exists.',
-'error.project_exists' => 'Já existe projeto com este nome.',
-'error.task_exists' => 'Já existe tarefa com este nome.',
-'error.client_exists' => 'Já existe cliente com este nome.',
 'error.invoice_exists' => 'Já existe fatura com este número.',
 // TODO: translate the following.
 // 'error.role_exists' => 'Role with this rank already exists.',
 'error.no_invoiceable_items' => 'Não há items faturáveis.',
+// TODO: translate the following.
+// 'error.no_records' => 'There are no records.',
 'error.no_login' => 'Não há usuário com este login.',
 'error.no_groups' => 'Sua base de dados está vazia. Entre como admin e crie uma equipe nova.', // TODO: replace "team" with "group".
 'error.upload' => 'Erro no envio do arquivo.',
 'error.range_locked' => 'Período está bloqueado.',
 'error.mail_send' => 'Erro enviando o e-mail.',
+// TODO: improve the translation above by adding MAIL_SMTP_DEBUG part.
+// 'error.mail_send' => 'Error sending mail. Use MAIL_SMTP_DEBUG for diagnostics.',
 'error.no_email' => 'Não há e-mail associado a este login.',
 'error.uncompleted_exists' => 'Entrada incompleta existente. Feche ou remova-a.',
 'error.goto_uncompleted' => 'Ir até a entrada incompleta.',
 'error.overlap' => 'O intervalo se sobrepõe com entradas já existentes.',
 'error.future_date' => 'Data é no futuro.',
+// TODO: translate the following.
+// 'error.xml' => 'Error in XML file at line %d: %s.',
+// 'error.cannot_import' => 'Cannot import: %s.',
+// 'error.format' => 'Invalid file format.',
+// 'error.user_count' => 'Limit on user count.',
+// 'error.expired' => 'Expiration date reached.',
+// 'error.file_storage' => 'File storage error.',
+
+// Warning messages.
+// TODO: translate the following.
+// 'warn.sure' => 'Are you sure?',
+// 'warn.confirm_save' => 'Date has changed. Confirm saving, not copying this item.',
+
+// Success messages.
+// TODO: translate the following.
+// 'msg.success' => 'Operation completed successfully.',
 
 // Labels for buttons.
 'button.login' => 'Login',
@@ -125,6 +146,9 @@ $i18n_key_words = array(
 'button.import' => 'Importar equipe', // TODO: replace "team" with "group".
 'button.close' => 'Fechar',
 'button.stop' => 'Parar',
+// TODO: translate the following.
+// 'button.approve' => 'Approve',
+// 'button.disapprove' => 'Disapprove',
 
 // Labels for controls on forms. Labels in this section are used on multiple forms.
 'label.group_name' => 'Nome da equipe',  // TODO: replace "team" with "group".
@@ -148,6 +172,8 @@ $i18n_key_words = array(
 'label.user' => 'Usuário',
 'label.users' => 'Usuários',
 // TODO: translate the following.
+// 'label.group' => 'Group',
+// 'label.subgroups' => 'Subgroups',
 // 'label.roles' => 'Roles',
 'label.client' => 'Cliente',
 'label.clients' => 'Clientes',
@@ -226,11 +252,31 @@ $i18n_key_words = array(
 // 'label.mark_paid' => 'Mark paid',
 // 'label.week_note' => 'Week note',
 // 'label.week_list' => 'Week list',
+// 'label.work_units' => 'Work units',
+// 'label.work_units_short' => 'Units',
+'label.totals_only' => 'Somente totais',
+// TODO: translate the following.
+// 'label.quota' => 'Quota',
+// 'label.timesheet' => 'Timesheet',
+// 'label.submitted' => 'Submitted',
+// 'label.approved' => 'Approved',
+// 'label.approval' => 'Report approval',
+// 'label.mark_approved' => 'Mark approved',
+// 'label.template' => 'Template',
+// 'label.attachments' => 'Attachments',
+// 'label.files' => 'Files',
+// 'label.image' => 'Image',
+// 'label.download' => 'Download',
 
 // Form titles.
+'title.error' => 'Erro',
+// TODO: Translate the following.
+// 'title.success' => 'Success',
 'title.login' => 'Login',
 'title.groups' => 'Equipes', // TODO: change "teams" to "groups".
-'title.create_group' => 'Criando equipe', // TODO: change "team" to "group".
+// TODO: translate the following.
+// 'title.subgroups' => 'Subgroups',
+// 'title.add_group' => 'Adding Group',
 'title.edit_group' => 'Editando equipe', // TODO: change "team" to "group".
 'title.delete_group' => 'Apagando equipe', // TODO: change "team" to "group".
 'title.reset_password' => 'Resetando a senha',
@@ -238,16 +284,23 @@ $i18n_key_words = array(
 'title.time' => 'Tempo',
 'title.edit_time_record' => 'Editando entrada de hora',
 'title.delete_time_record' => 'Apagando entrada de hora',
+// TODO: Translate the following.
+// 'title.time_files' => 'Time Record Files',
 'title.expenses' => 'Gastos',
 'title.edit_expense' => 'Editando item de gasto',
 'title.delete_expense' => 'Apagando item de gasto',
 'title.reports' => 'Relatórios',
 'title.report' => 'Report',
 'title.send_report' => 'Enviando relatório',
+// TODO: Translate the following.
+// 'title.timesheets' => 'Timesheets',
+// 'title.timesheet' => 'Timesheet',
 'title.invoice' => 'Fatura',
 'title.send_invoice' => 'Enviando fatura',
 'title.charts' => 'Gráficos',
 'title.projects' => 'Projetos',
+// TODO: translate the following.
+// 'title.project_files' => 'Project Files',
 'title.add_project' => 'Adicionando projeto',
 'title.edit_project' => 'Editando projeto',
 'title.delete_project' => 'Apagando projeto',
@@ -276,13 +329,16 @@ $i18n_key_words = array(
 'title.add_notification' => 'Adicionando notificação',
 'title.edit_notification' => 'Editando notificação',
 'title.delete_notification' => 'Apagando notificação',
+// TODO: translate the following.
+// 'title.add_timesheet' => 'Adding Timesheet',
+// 'title.edit_timesheet' => 'Editing Timesheet',
+// 'title.delete_timesheet' => 'Deleting Timesheet',
 // 'title.monthly_quotas' => 'Monthly Quotas',
 'title.export' => 'Exportando dados de equipe', // TODO: replace "team" with "group".
 'title.import' => 'Importando dados de equipe', // TODO: replace "team" with "group".
 'title.options' => 'Opções',
 'title.profile' => 'Perfil',
-// TODO: translate the following.
-// 'title.group' => 'Group Settings',
+'title.plugins' => 'Plugins',
 'title.cf_custom_fields' => 'Campos personalizados',
 'title.cf_add_custom_field' => 'Adicionando campo personalizado',
 'title.cf_edit_custom_field' => 'Editando campo personalizado',
@@ -295,6 +351,14 @@ $i18n_key_words = array(
 // TODO: translate the following.
 // 'title.week_view' => 'Week View',
 // 'title.swap_roles' => 'Swapping Roles',
+// 'title.work_units' => 'Work Units',
+// 'title.templates' => 'Templates',
+// 'title.add_template' => 'Adding Template',
+// 'title.edit_template' => 'Editing Template',
+// 'title.delete_template' => 'Deleting Template',
+// 'title.edit_file' => 'Editing File',
+// 'title.delete_file' => 'Deleting File',
+// 'title.download_file' => 'Downloading File',
 
 // Section for common strings inside combo boxes on forms. Strings shared between forms shall be placed here.
 // Strings that are used in a single form must go to the specific form section.
@@ -320,11 +384,15 @@ $i18n_key_words = array(
 'dropdown.clients' => 'clientes',
 'dropdown.select' => '--- selecione ---',
 'dropdown.select_invoice' => '--- selecione fatura ---',
+// TODO: translate the following.
+// 'dropdown.select_timesheet' => '--- select timesheet ---',
 'dropdown.status_active' => 'ativo',
 'dropdown.status_inactive' => 'inativo',
 'dropdown.delete' => 'apagar',
 'dropdown.do_not_delete' => 'não apagar',
 // TODO: translate the following.
+// 'dropdown.approved' => 'approved',
+// 'dropdown.not_approved' => 'not approved',
 // 'dropdown.paid' => 'paid',
 // 'dropdown.not_paid' => 'not paid',
 
@@ -355,6 +423,8 @@ $i18n_key_words = array(
 // TODO: translate the following.
 // 'form.time.remaining_quota' => 'Remaining quota',
 // 'form.time.over_quota' => 'Over quota',
+// 'form.time.remaining_balance' => 'Remaining balance',
+// 'form.time.over_balance' => 'Over balance',
 
 // Editing Time Record form. See example at https://timetracker.anuko.com/time_edit.php (get there by editing an uncompleted time record).
 'form.time_edit.uncompleted' => 'Eesta entrada foi salva somente com hora de início. Não é um erro.',
@@ -370,6 +440,10 @@ $i18n_key_words = array(
 'form.reports.include_not_billable' => 'não faturável',
 'form.reports.include_invoiced' => 'faturado',
 'form.reports.include_not_invoiced' => 'não faturado',
+// TODO: translate the following.
+// 'form.reports.include_assigned' => 'assigned',
+// 'form.reports.include_not_assigned' => 'not assigned',
+// 'form.reports.include_pending' => 'pending',
 'form.reports.select_period' => 'Selecione o período de tempo',
 'form.reports.set_period' => 'ou selecionar datas',
 'form.reports.show_fields' => 'Exibir campos',
@@ -380,13 +454,23 @@ $i18n_key_words = array(
 'form.reports.group_by_client' => 'cliente',
 'form.reports.group_by_project' => 'projeto',
 'form.reports.group_by_task' => 'tarefa',
-'form.reports.totals_only' => 'Somente totais',
 
 // Report form. See example at https://timetracker.anuko.com/report.php
 // (after generating a report at https://timetracker.anuko.com/reports.php).
 'form.report.export' => 'Exportar',
 // TODO: translate the following.
 // 'form.report.assign_to_invoice' => 'Assign to invoice',
+// 'form.report.assign_to_timesheet' => 'Assign to timesheet',
+
+// Timesheets form. See example at https://timetracker.anuko.com/timesheets.php
+// TODO: translate the following.
+// 'form.timesheets.active_timesheets' => 'Active Timesheets',
+// 'form.timesheets.inactive_timesheets' => 'Inactive Timesheets',
+
+// Templates form. See example at https://timetracker.anuko.com/templates.php
+// TODO: translate the following.
+// 'form.templates.active_templates' => 'Active Templates',
+// 'form.templates.inactive_templates' => 'Inactive Templates',
 
 // Invoice form. See example at https://timetracker.anuko.com/invoice.php
 // (you can get to this form after generating a report).
@@ -450,7 +534,7 @@ $i18n_key_words = array(
 'form.export.compression_none' => 'nenhuma',
 'form.export.compression_bzip' => 'bzip',
 
-// Importing Group Data form. See example at https://timetracker.anuko.com/imort.php (login as admin first).
+// Importing Group Data form. See example at https://timetracker.anuko.com/import.php (login as admin first).
 'form.import.hint' => 'Importar dados de equipe de um arquivo xml.', // TODO: replace "team" with "group".
 'form.import.file' => 'Selecionar arquivo',
 'form.import.success' => 'Importação realizada com sucesso.',
@@ -477,8 +561,8 @@ $i18n_key_words = array(
 // 'form.group_edit.allow_overlap' => 'Allow overlap',
 // 'form.group_edit.future_entries' => 'Future entries',
 // 'form.group_edit.uncompleted_indicators' => 'Uncompleted indicators',
+// 'form.group_edit.confirm_save' => 'Confirm saving',
 // 'form.group_edit.allow_ip' => 'Allow IP',
-'form.group_edit.plugins' => 'Plugins',
 
 // Deleting Group form. See example at https://timetracker.anuko.com/delete_group.php
 // TODO: translate the following.
@@ -496,7 +580,6 @@ $i18n_key_words = array(
 // TODO: translate the following.
 // 'form.quota.year' => 'Year',
 // 'form.quota.month' => 'Month',
-// 'form.quota.quota' => 'Quota',
 // 'form.quota.workday_hours' => 'Hours in a work day',
 // 'form.quota.hint' => 'If values are empty, quotas are calculated automatically based on workday hours and holidays.',
 
@@ -505,6 +588,11 @@ $i18n_key_words = array(
 // 'form.swap.hint' => 'Demote yourself to a lower role by swapping roles with someone else. This cannot be undone.',
 // 'form.swap.swap_with' => 'Swap roles with',
 
+// Work Units configuration form. See example at https://timetracker.anuko.com/work_units.php after enabling Work units plugin.
+// TODO: translate the following.
+// 'form.work_units.minutes_in_unit' => 'Minutes in unit',
+// 'form.work_units.1st_unit_threshold' => '1st unit threshold',
+
 // Roles and rights. These strings are used in multiple places. Grouped here to provide consistent translations.
 // TODO: translate the following.
 // 'role.user.label' => 'User',
@@ -512,7 +600,7 @@ $i18n_key_words = array(
 // 'role.user.description' => 'A regular member without management rights.',
 // 'role.client.label' => 'Client',
 // 'role.client.low_case_label' => 'client',
-// 'role.client.description' => 'A client can view its own reports, charts, and invoices.',
+// 'role.client.description' => 'A client can view its own data.',
 // 'role.supervisor.label' => 'Supervisor',
 // 'role.supervisor.low_case_label' => 'supervisor',
 // 'role.supervisor.description' => 'A person with a small set of management rights.',
@@ -528,4 +616,13 @@ $i18n_key_words = array(
 // 'role.admin.label' => 'Administrator',
 // 'role.admin.low_case_label' => 'administrator',
 // 'role.admin.description' => 'Site adminsitrator.',
+
+// Timesheet View form. See example at https://timetracker.anuko.com/timesheet_view.php.
+// TODO: translate the following.
+// 'form.timesheet_view.submit_subject' => 'Timesheet approval request',
+// 'form.timesheet_view.submit_body' => "A new timesheet requires approval.<p>User: %s.",
+// 'form.timesheet_view.approve_subject' => 'Timesheet approved',
+// 'form.timesheet_view.approve_body' => "Your timesheet %s was approved.<p>%s",
+// 'form.timesheet_view.disapprove_subject' => 'Timesheet not approved',
+// 'form.timesheet_view.disapprove_body' => "Your timesheet %s was not approved.<p>%s",
 );

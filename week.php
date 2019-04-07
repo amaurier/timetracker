@@ -32,7 +32,7 @@ import('form.DefaultCellRenderer');
 import('form.Table');
 import('form.TextField');
 import('ttUserHelper');
-import('ttTeamHelper');
+import('ttGroupHelper');
 import('ttWeekViewHelper');
 import('ttClientHelper');
 import('ttTimeHelper');
@@ -83,7 +83,7 @@ $endDate->setTimestamp(mktime(0,0,0,$t_arr[4]+1,$t_arr[3]-$t_arr[6]+6+$startWeek
 // Use custom fields plugin if it is enabled.
 if ($user->isPluginEnabled('cf')) {
   require_once('plugins/CustomFields.class.php');
-  $custom_fields = new CustomFields($user->group_id);
+  $custom_fields = new CustomFields();
   $smarty->assign('custom_fields', $custom_fields);
 }
 
@@ -91,9 +91,9 @@ if ($user->isPluginEnabled('cf')) {
 if ($user->isPluginEnabled('mq')){
   require_once('plugins/MonthlyQuota.class.php');
   $quota = new MonthlyQuota();
-  $month_quota = $quota->get($selected_date->mYear, $selected_date->mMonth);
-  $month_total = ttTimeHelper::getTimeForMonth($user->getActiveUser(), $selected_date);
-  $minutes_left = round(60*$month_quota) - ttTimeHelper::toMinutes($month_total);
+  $month_quota_minutes = $quota->getUserQuota($selected_date->mYear, $selected_date->mMonth);
+  $month_total = ttTimeHelper::getTimeForMonth($selected_date);
+  $minutes_left = $month_quota_minutes - ttTimeHelper::toMinutes($month_total);
 
   $smarty->assign('month_total', $month_total);
   $smarty->assign('over_quota', $minutes_left < 0);
@@ -128,7 +128,7 @@ $_SESSION['note'] = $cl_note;
 $dayHeaders = ttWeekViewHelper::getDayHeadersForWeek($startDate->toString(DB_DATEFORMAT));
 $lockedDays = ttWeekViewHelper::getLockedDaysForWeek($startDate->toString(DB_DATEFORMAT));
 // Get already existing records.
-$records = ttWeekViewHelper::getRecordsForInterval($user->getActiveUser(), $startDate->toString(DB_DATEFORMAT), $endDate->toString(DB_DATEFORMAT));
+$records = ttWeekViewHelper::getRecordsForInterval($user->getUser(), $startDate->toString(DB_DATEFORMAT), $endDate->toString(DB_DATEFORMAT));
 // Build data array for the table. Format is described in ttWeekViewHelper::getDataForWeekView function.
 if ($records)
   $dataArray = ttWeekViewHelper::getDataForWeekView($records, $dayHeaders);
@@ -244,7 +244,7 @@ $form->addInputElement($table);
 
 // Dropdown for clients in MODE_TIME. Use all active clients.
 if (MODE_TIME == $user->tracking_mode && $user->isPluginEnabled('cl')) {
-  $active_clients = ttTeamHelper::getActiveClients($user->group_id, true);
+  $active_clients = ttGroupHelper::getActiveClients(true);
   $form->addInput(array('type'=>'combobox',
     'onchange'=>'fillProjectDropdown(this.value);',
     'name'=>'client',
@@ -270,7 +270,7 @@ if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->t
 
   // Dropdown for clients if the clients plugin is enabled.
   if ($user->isPluginEnabled('cl')) {
-    $active_clients = ttTeamHelper::getActiveClients($user->group_id, true);
+    $active_clients = ttGroupHelper::getActiveClients(true);
     // We need an array of assigned project ids to do some trimming.
     foreach($project_list as $project)
       $projects_assigned_to_user[] = $project['id'];
@@ -298,7 +298,7 @@ if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->t
 }
 
 if (MODE_PROJECTS_AND_TASKS == $user->tracking_mode) {
-  $task_list = ttTeamHelper::getActiveTasks($user->group_id);
+  $task_list = ttGroupHelper::getActiveTasks();
   $form->addInput(array('type'=>'combobox',
     'name'=>'task',
     'style'=>'width: 250px;',
@@ -433,7 +433,7 @@ if ($request->isPost()) {
               $result = ttWeekViewHelper::insertDurationFromWeekView($fields, $custom_fields, $err);
             } elseif ($postedDuration == null || 0 == ttTimeHelper::toMinutes($postedDuration)) {
               // Delete an already existing record here.
-              $result = ttTimeHelper::delete($dataArray[$rowNumber][$dayHeader]['tt_log_id'], $user->getActiveUser());
+              $result = ttTimeHelper::delete($dataArray[$rowNumber][$dayHeader]['tt_log_id'], $user->getUser());
             } else {
               $fields = array();
               $fields['tt_log_id'] = $dataArray[$rowNumber][$dayHeader]['tt_log_id'];
@@ -494,7 +494,7 @@ if ($request->isPost()) {
   }
 } // isPost
 
-$week_total = ttTimeHelper::getTimeForWeek($user->getActiveUser(), $selected_date);
+$week_total = ttTimeHelper::getTimeForWeek($selected_date);
 
 $smarty->assign('selected_date', $selected_date);
 $smarty->assign('week_total', $week_total);
