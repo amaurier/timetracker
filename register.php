@@ -114,5 +114,6 @@ if ($request->isPost()) {
 $smarty->assign('title', $i18n->get('title.create_group'));
 $smarty->assign('forms', array($form->getName()=>$form->toArray()));
 $smarty->assign('onload', 'onLoad="document.groupForm.group_name.focus()"');
+$smarty->assign('about_text', $i18n->get('form.login.about'));
 $smarty->assign('content_page_name', 'register.tpl');
 $smarty->display('index.tpl');

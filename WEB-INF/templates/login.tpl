@@ -8,32 +8,29 @@ function get_date() {
 </script>
 
 <div class="row">
-  {if isTrue($smarty.const.MULTITEAM_MODE) && $smarty.const.AUTH_MODULE == 'db'}
-    <div class="col-md-6">
-      <div class="col-md-8 offset-md-2">
-        {$forms.loginForm.open}
-        {include file="login.`$smarty.const.AUTH_MODULE`.tpl"}
-        {$forms.loginForm.close}
+
+    {if !empty($about_text)}
+      <div class="col-md-8">
+        <p class="mx-3 my-3 h1">
+          {$about_text}
+        </p>
+        <p class="mx-3 my-3 h3">
+          <a href="https://www.anuko.com/lp/tt_8.htm" target="_blank">{$i18n.footer.contribute_msg}</a>
+        </p>
       </div>
-    </div>
-    <div class="col-md-6">
-      <div class="col-md-8 offset-md-2">
-      <a class="btn btn-success btn-block" href="register.php">{$i18n.menu.create_group}</a>
-      </div>
-    </div>
-  {else}
-    <div class="col-md-4 offset-md-4">
+      <div class="col-md-4">
+    {else}
+      <div class="col-md-4 offset-md-4">
+    {/if}
+
+    <div class="mx-3 my-3">
       {$forms.loginForm.open}
       {include file="login.`$smarty.const.AUTH_MODULE`.tpl"}
       {$forms.loginForm.close}
-    </div>
-  {/if}
 
-</div>
-<div class="row">
-  <div class="col-md-4 offset-md-4">
-    {if !empty($about_text)}
-      <em>{$about_text}</em>
-    {/if}
+      {if isTrue($smarty.const.MULTITEAM_MODE) && $smarty.const.AUTH_MODULE == 'db'}
+          Ou <a class="" href="register.php">{$i18n.menu.create_group}</a>
+      {/if}
+    </div>
   </div>
 </div>

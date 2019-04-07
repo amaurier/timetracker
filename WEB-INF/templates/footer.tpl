@@ -7,15 +7,24 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-12 text-center p-2">
-      Anuko Time Tracker 1.17.90.4272 | Copyright &copy; <a href="https://www.anuko.com/lp/tt_3.htm" target="_blank">Anuko</a> |
-        <a href="https://www.anuko.com/lp/tt_4.htm" target="_blank">{$i18n.footer.credits}</a> |
-        <a href="https://www.anuko.com/lp/tt_5.htm" target="_blank">{$i18n.footer.license}</a> |
-        <a href="https://www.anuko.com/lp/tt_7.htm" target="_blank">{$i18n.footer.improve}</a>
+    <div class="col-sm-6 text-center p-2">
+      <ul class="nav flex-column">
+        <li class="nav-item">Anuko Time Tracker 1.17.90.4272</li>
+        <li class="nav-item">Copyright &copy; <a href="https://www.anuko.com/lp/tt_3.htm" target="_blank">Anuko</a></li>
+        <li class="nav-item"><a class="nav-link" href="https://www.anuko.com/lp/tt_4.htm" target="_blank">{$i18n.footer.credits}</a></li>
+        <li class="nav-item"><a class="nav-link" href="https://www.anuko.com/lp/tt_5.htm" target="_blank">{$i18n.footer.license}</a></li>
+        <li class="nav-item"><a class="nav-link" href="https://www.anuko.com/lp/tt_7.htm" target="_blank">{$i18n.footer.improve}</a></li>
+      </ul>
+    </div>
+    <div class="col-sm-6 text-center p-2">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="{$smarty.const.FORUM_LINK}" target="_blank">{$i18n.menu.forum}</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{$smarty.const.HELP_LINK}" target="_blank">{$i18n.menu.help}</a>
+        </li>
+      </ul>
     </div>
   </div>
 </footer>
-
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
