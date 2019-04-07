@@ -65,7 +65,7 @@ define('APP_NAME', '');
 // Older versions of TT used mysql password function to hash user passwords. Newer versions use md5.
 // Because the password function may behave differently between servers, the OLD_PASSWORD settings
 // gives you an opportunity to control it, if needed.
-//  
+//
 // define('OLD_PASSWORDS', true);
 
 
@@ -80,7 +80,7 @@ define('WEEKEND_START_DAY', 6);
 // PHPSESSID_TTL
 //
 // Lifetime in seconds for tt_PHPSESSID cookie. Time to live is extended by this value
-// with each visit to the site so that users don't have to re-login. 
+// with each visit to the site so that users don't have to re-login.
 // define('PHPSESSID_TTL', 86400);
 //
 // Note: see also PHP_SESSION_PATH below as you may have to use it together with
@@ -117,6 +117,8 @@ define('MAIL_SMTP_HOST', 'localhost'); // For gmail use 'ssl://smtp.gmail.com' i
 // define('MAIL_SMTP_AUTH', true);
 // define('MAIL_SMTP_DEBUG', true);
 
+// THEMES
+// define('THEME','bootstrap');
 
 // CSS files. They are located in the root of Time Tracker installation.
 //
@@ -146,22 +148,22 @@ define('WEEK_START_DEFAULT', 0);
 
 // Default language of the application.
 // Possible values: en, fr, nl, etc. Empty string means the language is defined by user browser.
-// 
+//
 define('LANG_DEFAULT', '');
 
 
 // Default currency symbol. Use €, £, a more specific dollar like US$, CAD, etc.
-// 
+//
 define('CURRENCY_DEFAULT', '$');
 
 
 // EXPORT_DECIMAL_DURATION - defines whether time duration values are decimal in CSV and XML data exports (1.25 or 1,25 vs 1:15).
-// 
+//
 define('EXPORT_DECIMAL_DURATION', true);
 
 
 // REPORT_FOOTER - defines whether to use a footer on reports.
-// 
+//
 define('REPORT_FOOTER', true);
 
 

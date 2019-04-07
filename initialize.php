@@ -39,7 +39,7 @@ ini_set('display_errors', 'Off');
 // require_once('init_auth.php');
 define("APP_DIR", dirname(__FILE__));
 define("LIBRARY_DIR", APP_DIR."/WEB-INF/lib");
-define("TEMPLATE_DIR", APP_DIR."/WEB-INF/templates");
+
 // Date format for database and URI parameters.
 define('DB_DATEFORMAT', '%Y-%m-%d');
 
@@ -59,6 +59,13 @@ if (strrpos(DSN, 'mysqli://', -strlen(DSN)) !== FALSE) {
 }
 if (strrpos(DSN, 'mysql://', -strlen(DSN)) !== FALSE) {
   check_extension('mysql');  // DSN starts with mysql:// - require mysql extension.
+}
+
+// Set template_dir to custom theme if provided
+if (defined("THEME")) {
+  define("TEMPLATE_DIR", APP_DIR."/WEB-INF/templates/".THEME);
+} else {
+  define("TEMPLATE_DIR", APP_DIR."/WEB-INF/templates");
 }
 
 // Require other extensions.
@@ -92,8 +99,8 @@ if (defined('PHP_SESSION_PATH')) {
 // Set session cookie lifetime.
 session_set_cookie_params($phpsessid_ttl);
 if (isset($_COOKIE['tt_PHPSESSID'])) {
-  // Extend PHP session cookie lifetime by PHPSESSID_TTL (if defined, otherwise 24 hours) 
-  // so that users don't have to re-login during this period from now. 
+  // Extend PHP session cookie lifetime by PHPSESSID_TTL (if defined, otherwise 24 hours)
+  // so that users don't have to re-login during this period from now.
   setcookie('tt_PHPSESSID', $_COOKIE['tt_PHPSESSID'],  time() + $phpsessid_ttl, '/');
 }
 
