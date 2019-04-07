@@ -47,14 +47,19 @@ $i18n_key_words = array(
 'menu.create_group' => 'Δημιουργία ομάδας',
 'menu.profile' => 'Προφίλ',
 'menu.group' => 'Ομάδα',
+'menu.plugins' => 'Πρόσθετα',
 'menu.time' => 'Χρόνος',
 'menu.expenses' => 'Έξοδα',
 'menu.reports' => 'Αναφορές',
+// TODO: translate the following.
+// 'menu.timesheets' => 'Timesheets',
 'menu.charts' => 'Διαγράμματα',
 'menu.projects' => 'Έργα',
 'menu.tasks' => 'Εργασίες',
 'menu.users' => 'Χρήστες',
 'menu.groups' => 'Ομάδες',
+// TODO: translate the following.
+// 'menu.subgroups' => 'Subgroups',
 'menu.export' => 'Εξαγωγή',
 'menu.clients' => 'Πελάτες',
 'menu.options' => 'Επιλογές',
@@ -83,22 +88,39 @@ $i18n_key_words = array(
 'error.auth' => 'Λανθασμένο όνομα εισόδου ή κωδικός.',
 'error.user_exists' => 'Ο χρήστης με αυτήν τη σύνδεση υπάρχει ήδη.',
 'error.object_exists' => 'Το αντικείμενο με αυτό το όνομα υπάρχει ήδη.',
-'error.project_exists' => 'Το έργα με αυτό το όνομα υπάρχει ήδη.',
-'error.task_exists' => 'Η εργασία με αυτό το όνομα υπάρχει ήδη.',
-'error.client_exists' => 'Ο πελάτης με αυτό το όνομα υπάρχει ήδη.',
 'error.invoice_exists' => 'Το τιμολόγιο με αυτόν τον αριθμό υπάρχει ήδη.',
 'error.role_exists' => 'Ο ρόλος σε αυτή τη σειρά υπάρχει ήδη.',
 'error.no_invoiceable_items' => 'Δεν υπάρχουν στοιχεία προς τιμολόγηση.',
+// TODO: translate the following.
+// 'error.no_records' => 'There are no records.',
 'error.no_login' => 'Δεν υπάρχει χρήστης με αυτά τα στοιχεία.',
 'error.no_groups' => 'Η βάση δεδομένων σας είναι κενή. Συνδεθείτε ως διαχειριστής και δημιουργήστε μια νέα ομάδα.',
 'error.upload' => 'Σφάλμα φόρτωσης αρχείου.',
 'error.range_locked' => 'Το χρονικό διάστημα είναι κλειδωμένο.',
 'error.mail_send' => 'Σφάλμα κατά την αποστολή του μηνύματος.',
+// TODO: improve the translation above by adding MAIL_SMTP_DEBUG part.
+// 'error.mail_send' => 'Error sending mail. Use MAIL_SMTP_DEBUG for diagnostics.',
 'error.no_email' => 'Δεν βρέθηκε διεύθυνση ηλεκτρονικού ταχυδρομείου που να αντιστοιχεί σε αυτή την σύνδεση.',
 'error.uncompleted_exists' => 'Η μη ολοκληρωμένη καταχώρηση υπάρχει ήδη. Κλείσιμο ή διαγραφή του.',
 'error.goto_uncompleted' => 'Μεταβείτε στην μη ολοκληρωμένη καταχώρηση.',
 'error.overlap' => 'Το χρονικό διάστημα επικαλύπτει υπάρχουσες καταχωρήσεις.',
 'error.future_date' => 'Η ημερομηνία είναι στο μέλλον.',
+// TODO: translate the following.
+// 'error.xml' => 'Error in XML file at line %d: %s.',
+// 'error.cannot_import' => 'Cannot import: %s.',
+// 'error.format' => 'Invalid file format.',
+// 'error.user_count' => 'Limit on user count.',
+// 'error.expired' => 'Expiration date reached.',
+// 'error.file_storage' => 'File storage error.',
+
+// Warning messages.
+// TODO: translate the following.
+// 'warn.sure' => 'Are you sure?',
+// 'warn.confirm_save' => 'Date has changed. Confirm saving, not copying this item.',
+
+// Success messages.
+// TODO: translate the following.
+// 'msg.success' => 'Operation completed successfully.',
 
 // Labels for buttons.
 'button.login' => 'Σύνδεση',
@@ -118,6 +140,9 @@ $i18n_key_words = array(
 'button.import' => 'Εισαγωγή ομάδας',
 'button.close' => 'Κλείσιμο',
 'button.stop' => 'Τέλος',
+// TODO: translate the following.
+// 'button.approve' => 'Approve',
+// 'button.disapprove' => 'Disapprove',
 
 // Labels for controls on forms. Labels in this section are used on multiple forms.
 'label.group_name' => 'Όνομα ομάδας',
@@ -139,6 +164,9 @@ $i18n_key_words = array(
 'label.end_date' => 'Ημερομηνία λήξης',
 'label.user' => 'Χρήστης',
 'label.users' => 'Χρήστες',
+// TODO: translate the following.
+// 'label.group' => 'Group',
+// 'label.subgroups' => 'Subgroups',
 'label.roles' => 'Ρόλους',
 'label.client' => 'Πελάτης',
 'label.clients' => 'Πελάτες',
@@ -212,11 +240,32 @@ $i18n_key_words = array(
 'label.mark_paid' => 'Σήμανση πληρωμένα',
 'label.week_note' => 'Σημείωση εβδομάδας',
 'label.week_list' => 'Λίστα εβδομάδων',
+// TODO: translate the following.
+// 'label.work_units' => 'Work units',
+// 'label.work_units_short' => 'Units',
+'label.totals_only' => 'Σύνολα μόνο',
+'label.quota' => 'Ποσοστό',
+// TODO: translate the following.
+// 'label.timesheet' => 'Timesheet',
+// 'label.submitted' => 'Submitted',
+// 'label.approved' => 'Approved',
+// 'label.approval' => 'Report approval',
+// 'label.mark_approved' => 'Mark approved',
+// 'label.template' => 'Template',
+// 'label.attachments' => 'Attachments',
+// 'label.files' => 'Files',
+// 'label.image' => 'Image',
+// 'label.download' => 'Download',
 
 // Form titles.
+'title.error' => 'Σφάλμα',
+// TODO: Translate the following.
+// 'title.success' => 'Success',
 'title.login' => 'Σύνδεση',
 'title.groups' => 'Ομάδες',
-'title.create_group' => 'Δημιουργία ομάδας',
+// TODO: translate the following.
+// 'title.subgroups' => 'Subgroups',
+// 'title.add_group' => 'Adding Group',
 'title.edit_group' => 'Επεξεργασία ομάδας',
 'title.delete_group' => 'Διαγραφή ομάδας',
 'title.reset_password' => 'Επαναφορά κωδικού πρόσβασης',
@@ -224,6 +273,8 @@ $i18n_key_words = array(
 'title.time' => 'Χρόνος',
 'title.edit_time_record' => 'Επεξεργασία χρόνου',
 'title.delete_time_record' => 'Διαγραφή χρόνου',
+// TODO: Translate the following.
+// 'title.time_files' => 'Time Record Files',
 'title.expenses' => 'Δαπάνες',
 'title.edit_expense' => 'Επεξεργασία δαπάνης',
 'title.delete_expense' => 'Διαγραφή δαπάνης',
@@ -234,10 +285,15 @@ $i18n_key_words = array(
 'title.reports' => 'Αναφορές',
 'title.report' => 'Αναφορά',
 'title.send_report' => 'Αποστολή αναφοράς',
+// TODO: Translate the following.
+// 'title.timesheets' => 'Timesheets',
+// 'title.timesheet' => 'Timesheet',
 'title.invoice' => 'Τιμολόγιο',
 'title.send_invoice' => 'Αποστολή τιμολόγιου',
 'title.charts' => 'Γραφήματα',
 'title.projects' => 'Έργο',
+// TODO: translate the following.
+// 'title.project_files' => 'Project Files',
 'title.add_project' => 'Προσθήκη έργου',
 'title.edit_project' => 'Επεξεργασία έργου',
 'title.delete_project' => 'Διαγραφή έργου',
@@ -265,13 +321,16 @@ $i18n_key_words = array(
 'title.add_notification' => 'Προσθήκη ειδοποίησης',
 'title.edit_notification' => 'Επεξεργασία ειδοποίησης',
 'title.delete_notification' => 'Διαγραφή ειδοποίησης',
+// TODO: translate the following.
+// 'title.add_timesheet' => 'Adding Timesheet',
+// 'title.edit_timesheet' => 'Editing Timesheet',
+// 'title.delete_timesheet' => 'Deleting Timesheet',
 'title.monthly_quotas' => 'Μηνιαίες ποσοστώσεις',
 'title.export' => 'Εξαγωγή δεδομένων ομάδας',
 'title.import' => 'Εισαγωγή δεδομένων ομάδας',
 'title.options' => 'Επιλογές',
 'title.profile' => 'Προφίλ',
-// TODO: translate the following.
-// 'title.group' => 'Group Settings',
+'title.plugins' => 'Πρόσθετα',
 'title.cf_custom_fields' => 'Προσαρμοσμένα πεδία',
 'title.cf_add_custom_field' => 'Προσθήκη προσαρμοσμένου πεδίου',
 'title.cf_edit_custom_field' => 'Επεξεργασία προσαρμοσμένου πεδίου',
@@ -284,6 +343,14 @@ $i18n_key_words = array(
 'title.week_view' => 'Προβολή εβδομάδας',
 // TODO: translate the following.
 // 'title.swap_roles' => 'Swapping Roles',
+// 'title.work_units' => 'Work Units',
+// 'title.templates' => 'Templates',
+// 'title.add_template' => 'Adding Template',
+// 'title.edit_template' => 'Editing Template',
+// 'title.delete_template' => 'Deleting Template',
+// 'title.edit_file' => 'Editing File',
+// 'title.delete_file' => 'Deleting File',
+// 'title.download_file' => 'Downloading File',
 
 // Section for common strings inside combo boxes on forms. Strings shared between forms shall be placed here.
 // Strings that are used in a single form must go to the specific form section.
@@ -307,10 +374,15 @@ $i18n_key_words = array(
 'dropdown.clients' => 'πελάτες',
 'dropdown.select' => '--- επιλογή ---',
 'dropdown.select_invoice' => '--- επιλογή τιμολόγιου ---',
+// TODO: translate the following.
+// 'dropdown.select_timesheet' => '--- select timesheet ---',
 'dropdown.status_active' => 'ενεργός',
 'dropdown.status_inactive' => 'ανένεργος',
 'dropdown.delete' => 'διαγραφή',
 'dropdown.do_not_delete' => 'μη το διαγράψετε',
+// TODO: translate the following.
+// 'dropdown.approved' => 'approved',
+// 'dropdown.not_approved' => 'not approved',
 'dropdown.paid' => 'εξοφλημένο',
 'dropdown.not_paid' => 'δεν έχει εξοφληθεί',
 
@@ -337,6 +409,9 @@ $i18n_key_words = array(
 'form.time.uncompleted' => 'Μη ολοκληρωμένο',
 'form.time.remaining_quota' => 'Υπολειπόμενη ποσόστωση',
 'form.time.over_quota' => 'Πάνω από το όριο',
+// TODO: translate the following.
+// 'form.time.remaining_balance' => 'Remaining balance',
+// 'form.time.over_balance' => 'Over balance',
 
 // Editing Time Record form. See example at https://timetracker.anuko.com/time_edit.php (get there by editing an uncompleted time record).
 'form.time_edit.uncompleted' => 'Η καταχώρηση αποθηκεύτηκε μόνο με ώρα έναρξης. Δεν είναι λάθος.',
@@ -351,6 +426,10 @@ $i18n_key_words = array(
 'form.reports.include_not_billable' => 'μη χρεώσιμο',
 'form.reports.include_invoiced' => 'τιμολόγηση',
 'form.reports.include_not_invoiced' => 'χωρίς τιμολόγηση',
+// TODO: translate the following.
+// 'form.reports.include_assigned' => 'assigned',
+// 'form.reports.include_not_assigned' => 'not assigned',
+// 'form.reports.include_pending' => 'pending',
 'form.reports.select_period' => 'Επιλογή χρονικής περιόδου',
 'form.reports.set_period' => 'ή εύρος ημερομηνιών',
 'form.reports.show_fields' => 'Εμφάνιση πεδίων',
@@ -361,12 +440,23 @@ $i18n_key_words = array(
 'form.reports.group_by_client' => 'πελάτης',
 'form.reports.group_by_project' => 'έργο',
 'form.reports.group_by_task' => 'εργασία',
-'form.reports.totals_only' => 'Σύνολα μόνο',
 
 // Report form. See example at https://timetracker.anuko.com/report.php
 // (after generating a report at https://timetracker.anuko.com/reports.php).
 'form.report.export' => 'Εξαγωγή',
 'form.report.assign_to_invoice' => 'Ανάθεση στο τιμολόγιο',
+// TODO: translate the following.
+// 'form.report.assign_to_timesheet' => 'Assign to timesheet',
+
+// Timesheets form. See example at https://timetracker.anuko.com/timesheets.php
+// TODO: translate the following.
+// 'form.timesheets.active_timesheets' => 'Active Timesheets',
+// 'form.timesheets.inactive_timesheets' => 'Inactive Timesheets',
+
+// Templates form. See example at https://timetracker.anuko.com/templates.php
+// TODO: translate the following.
+// 'form.templates.active_templates' => 'Active Templates',
+// 'form.templates.inactive_templates' => 'Inactive Templates',
 
 // Invoice form. See example at https://timetracker.anuko.com/invoice.php
 // (you can get to this form after generating a report).
@@ -426,7 +516,7 @@ $i18n_key_words = array(
 'form.export.compression_none' => 'χωρίς',
 'form.export.compression_bzip' => 'bzip',
 
-// Importing Group Data form. See example at https://timetracker.anuko.com/imort.php (login as admin first).
+// Importing Group Data form. See example at https://timetracker.anuko.com/import.php (login as admin first).
 'form.import.hint' => 'Εισαγωγή δεδομένων ομάδας από αρχείο xml.',
 'form.import.file' => 'Επιλογή αρχείου',
 'form.import.success' => 'Η εισαγωγή ολοκληρώθηκε με επιτυχία.',
@@ -451,8 +541,8 @@ $i18n_key_words = array(
 'form.group_edit.future_entries' => 'Μελλοντικές καταχωρήσεις',
 'form.group_edit.uncompleted_indicators' => 'Μη ολοκληρωμένες ενδείξεις',
 // TODO: translate the following.
+// 'form.group_edit.confirm_save' => 'Confirm saving',
 // 'form.group_edit.allow_ip' => 'Allow IP',
-'form.group_edit.plugins' => 'Πρόσθετα',
 
 // Deleting Group form. See example at https://timetracker.anuko.com/delete_group.php
 // TODO: translate the following.
@@ -469,7 +559,6 @@ $i18n_key_words = array(
 // Quotas configuration form. See example at https://timetracker.anuko.com/quotas.php after enabling Monthly quotas plugin.
 'form.quota.year' => 'Χρόνος',
 'form.quota.month' => 'Μήνας',
-'form.quota.quota' => 'Ποσοστό',
 'form.quota.workday_hours' => 'Ώρες ανά ημέρα εργασίας',
 'form.quota.hint' => 'Εάν οι τιμές είναι κενές, οι ποσοστώσεις υπολογίζονται αυτόματα με βάση τις ώρες της εργάσιμης ημέρας και τις αργίες.',
 
@@ -478,13 +567,20 @@ $i18n_key_words = array(
 // 'form.swap.hint' => 'Demote yourself to a lower role by swapping roles with someone else. This cannot be undone.',
 // 'form.swap.swap_with' => 'Swap roles with',
 
+// Work Units configuration form. See example at https://timetracker.anuko.com/work_units.php after enabling Work units plugin.
+// TODO: translate the following.
+// 'form.work_units.minutes_in_unit' => 'Minutes in unit',
+// 'form.work_units.1st_unit_threshold' => '1st unit threshold',
+
 // Roles and rights. These strings are used in multiple places. Grouped here to provide consistent translations.
 'role.user.label' => 'Χρήστης',
 'role.user.low_case_label' => 'χρήστης',
 'role.user.description' => 'Μέλος χωρίς δικαιώματα διαχείρισης.',
 'role.client.label' => 'Πελάτης',
 'role.client.low_case_label' => 'πελάτης',
-'role.client.description' => 'Ο πελάτης μπορεί να δει τις δικές του αναφορές, διαγράμματα και τιμολόγια.',
+// TODO: translate the following.
+// 'role.client.description' => 'A client can view its own data.',
+'role.client.description' => 'Ο πελάτης μπορεί να δει τις δικές του αναφορές και τιμολόγια.',
 'role.supervisor.label' => 'Επόπτης',
 'role.supervisor.low_case_label' => 'επόπτης',
 'role.supervisor.description' => 'Άτομο με μικρό σύνολο δικαιωμάτων διαχείρισης.',
@@ -500,4 +596,13 @@ $i18n_key_words = array(
 'role.admin.label' => 'Διαχειριστής',
 'role.admin.low_case_label' => 'διαχειριστής',
 'role.admin.description' => 'Διαχειριστής δικτυακού τόπου.',
+
+// Timesheet View form. See example at https://timetracker.anuko.com/timesheet_view.php.
+// TODO: translate the following.
+// 'form.timesheet_view.submit_subject' => 'Timesheet approval request',
+// 'form.timesheet_view.submit_body' => "A new timesheet requires approval.<p>User: %s.",
+// 'form.timesheet_view.approve_subject' => 'Timesheet approved',
+// 'form.timesheet_view.approve_body' => "Your timesheet %s was approved.<p>%s",
+// 'form.timesheet_view.disapprove_subject' => 'Timesheet not approved',
+// 'form.timesheet_view.disapprove_body' => "Your timesheet %s was not approved.<p>%s",
 );

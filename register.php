@@ -29,10 +29,14 @@
 require_once('initialize.php');
 import('form.Form');
 
-if (!isTrue(MULTITEAM_MODE) || $auth->isPasswordExternal()) {
+if (!isTrue('MULTITEAM_MODE') || $auth->isPasswordExternal()) {
   header('Location: login.php');
   exit();
 }
+
+// Use the "limit" plugin if we have one. Ignore include errors.
+// The "limit" plugin is not required for normal operation of Time Tracker.
+@include('plugins/limit/register.php');
 
 $auth->doLogout();
 
@@ -111,7 +115,7 @@ if ($request->isPost()) {
   }
 } // isPost
 
-$smarty->assign('title', $i18n->get('title.create_group'));
+$smarty->assign('title', $i18n->get('title.add_group'));
 $smarty->assign('forms', array($form->getName()=>$form->toArray()));
 $smarty->assign('onload', 'onLoad="document.groupForm.group_name.focus()"');
 $smarty->assign('content_page_name', 'register.tpl');

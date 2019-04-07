@@ -29,7 +29,7 @@
 require_once('../initialize.php');
 import('form.Form');
 import('ttUserHelper');
-import('ttTeamHelper');
+import('ttGroupHelper');
 import('ttClientHelper');
 import('ttTimeHelper');
 import('DateAndTime');
@@ -40,22 +40,25 @@ if (!ttAccessAllowed('track_own_time')) {
   exit();
 }
 $cl_id = (int)$request->getParameter('id');
-$time_rec = ttTimeHelper::getRecord($cl_id, $user->getActiveUser());
-if (!$time_rec || $time_rec['invoice_id']) {
-  // Prohibit editing not ours or invoiced records.
+$time_rec = ttTimeHelper::getRecord($cl_id);
+if (!$time_rec || $time_rec['approved'] || $time_rec['timesheet_id'] || $time_rec['invoice_id']) {
+  // Prohibit editing not ours, approved, assigned to timesheet, or invoiced records.
   header('Location: access_denied.php');
   exit();
 }
 // End of access checks.
 
+$user_id = $user->getUser();
+
 // Use custom fields plugin if it is enabled.
 if ($user->isPluginEnabled('cf')) {
   require_once('../plugins/CustomFields.class.php');
-  $custom_fields = new CustomFields($user->group_id);
+  $custom_fields = new CustomFields();
   $smarty->assign('custom_fields', $custom_fields);
 }
 
 $item_date = new DateAndTime(DB_DATEFORMAT, $time_rec['date']);
+$confirm_save = $user->getConfigOption('confirm_save');
 
 // Initialize variables.
 $cl_start = $cl_finish = $cl_duration = $cl_date = $cl_note = $cl_project = $cl_task = $cl_billable = null;
@@ -107,7 +110,7 @@ $form = new Form('timeRecordForm');
 
 // Dropdown for clients in MODE_TIME. Use all active clients.
 if (MODE_TIME == $user->tracking_mode && $user->isPluginEnabled('cl')) {
-    $active_clients = ttTeamHelper::getActiveClients($user->group_id, true);
+    $active_clients = ttGroupHelper::getActiveClients(true);
     $form->addInput(array('type'=>'combobox',
       'onchange'=>'fillProjectDropdown(this.value);',
       'name'=>'client',
@@ -133,7 +136,7 @@ if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->t
 
   // Dropdown for clients if the clients plugin is enabled.
   if ($user->isPluginEnabled('cl')) {
-    $active_clients = ttTeamHelper::getActiveClients($user->group_id, true);
+    $active_clients = ttGroupHelper::getActiveClients(true);
     // We need an array of assigned project ids to do some trimming.
     foreach($project_list as $project)
       $projects_assigned_to_user[] = $project['id'];
@@ -161,7 +164,7 @@ if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->t
 }
 
 if (MODE_PROJECTS_AND_TASKS == $user->tracking_mode) {
-  $task_list = ttTeamHelper::getActiveTasks($user->group_id);
+  $task_list = ttGroupHelper::getActiveTasks();
   $form->addInput(array('type'=>'combobox',
     'name'=>'task',
     'style'=>'width: 250px;',
@@ -185,6 +188,7 @@ if ((TYPE_DURATION == $user->record_type) || (TYPE_ALL == $user->record_type))
   $form->addInput(array('type'=>'text','name'=>'duration','value'=>$cl_duration,'onchange'=>"formDisable('duration');"));
 $form->addInput(array('type'=>'datefield','name'=>'date','maxlength'=>'20','value'=>$cl_date));
 $form->addInput(array('type'=>'textarea','name'=>'note','class'=>'mobile-textarea','value'=>$cl_note));
+
 // If we have custom fields - add controls for them.
 if ($custom_fields && $custom_fields->fields[0]) {
   // Only one custom field is supported at this time.
@@ -199,12 +203,32 @@ if ($custom_fields && $custom_fields->fields[0]) {
       'empty' => array('' => $i18n->get('dropdown.select'))));
   }
 }
+
+// If we have templates, add a dropdown to select one.
+if ($user->isPluginEnabled('tp')){
+  $templates = ttGroupHelper::getActiveTemplates();
+  if (count($templates) >= 1) {
+    $form->addInput(array('type'=>'combobox',
+      'onchange'=>'fillNote(this.value);',
+      'name'=>'template',
+      'style'=>'width: 250px;',
+      'data'=>$templates,
+      'datakeys'=>array('id','name'),
+      'empty'=>array(''=>$i18n->get('dropdown.select'))));
+    $smarty->assign('template_dropdown', 1);
+    $smarty->assign('templates', $templates);
+  }
+}
+
 // Hidden control for record id.
 $form->addInput(array('type'=>'hidden','name'=>'id','value'=>$cl_id));
 if ($user->isPluginEnabled('iv'))
   $form->addInput(array('type'=>'checkbox','name'=>'billable','value'=>$cl_billable));
 $form->addInput(array('type'=>'hidden','name'=>'browser_today','value'=>'')); // User current date, which gets filled in on btn_save click.
-$form->addInput(array('type'=>'submit','name'=>'btn_save','onclick'=>'browser_today.value=get_date()','value'=>$i18n->get('button.save')));
+$on_click_action = 'browser_today.value=get_date();';
+$form->addInput(array('type'=>'submit','name'=>'btn_copy','onclick'=>$on_click_action,'value'=>$i18n->get('button.copy')));
+if ($confirm_save) $on_click_action .= 'return(confirmSave());';
+$form->addInput(array('type'=>'submit','name'=>'btn_save','onclick'=>$on_click_action,'value'=>$i18n->get('button.save')));
 $form->addInput(array('type'=>'submit','name'=>'btn_delete','value'=>$i18n->get('label.delete')));
 
 if ($request->isPost()) {
@@ -247,6 +271,10 @@ if ($request->isPost()) {
   }
   if (!ttValidDate($cl_date)) $err->add($i18n->get('error.field'), $i18n->get('label.date'));
   if (!ttValidString($cl_note, true)) $err->add($i18n->get('error.field'), $i18n->get('label.note'));
+  if ($user->isPluginEnabled('tp') && !ttValidTemplateText($cl_note)) {
+    $err->add($i18n->get('error.field'), $i18n->get('label.note'));
+  }
+  if (!ttTimeHelper::canAdd()) $err->add($i18n->get('error.expired'));
   // Finished validating user input.
 
   // This is a new date for the time record.
@@ -279,7 +307,7 @@ if ($request->isPost()) {
       // 3) Prohibit saving uncompleted unlocked entries when another uncompleted entry exists.
       $uncompleted = ($cl_finish == '' && $cl_duration == '');
       if ($uncompleted) {
-        $not_completed_rec = ttTimeHelper::getUncompleted($user->getActiveUser());
+        $not_completed_rec = ttTimeHelper::getUncompleted($user_id);
         if ($not_completed_rec && ($time_rec['id'] <> $not_completed_rec['id'])) {
           // We have another not completed record.
           $err->add($i18n->get('error.uncompleted_exists')." <a href = 'time_edit.php?id=".$not_completed_rec['id']."'>".$i18n->get('error.goto_uncompleted')."</a>");
@@ -289,7 +317,7 @@ if ($request->isPost()) {
 
     // Prohibit creating an overlapping record.
     if ($err->no()) {
-      if (ttTimeHelper::overlaps($user->getActiveUser(), $new_date->toString(DB_DATEFORMAT), $cl_start, $cl_finish, $cl_id))
+      if (ttTimeHelper::overlaps($user_id, $new_date->toString(DB_DATEFORMAT), $cl_start, $cl_finish, $cl_id))
         $err->add($i18n->get('error.overlap'));
     }
 
@@ -298,7 +326,7 @@ if ($request->isPost()) {
       $res = ttTimeHelper::update(array(
           'id'=>$cl_id,  
           'date'=>$new_date->toString(DB_DATEFORMAT),
-          'user_id'=>$user->getActiveUser(),
+          'user_id'=>$user_id,
           'client'=>$cl_client,
           'project'=>$cl_project,
           'task'=>$cl_task,
@@ -323,12 +351,79 @@ if ($request->isPost()) {
     }
   }
 
+  // Save as new record.
+  if ($request->getParameter('btn_copy')) {
+    // We need to:
+    // 1) Prohibit saving into locked range.
+    // 2) Prohibit saving uncompleted unlocked entries when another uncompleted entry exists.
+
+    // Now, step by step.
+    if ($err->no()) {
+      // 1) Prohibit saving into locked range.
+      if ($user->isDateLocked($new_date))
+        $err->add($i18n->get('error.range_locked'));
+
+      // 2) Prohibit saving uncompleted unlocked entries when another uncompleted entry exists.
+      $uncompleted = ($cl_finish == '' && $cl_duration == '');
+      if ($uncompleted) {
+        $not_completed_rec = ttTimeHelper::getUncompleted($user_id);
+        if ($not_completed_rec) {
+          // We have another not completed record.
+          $err->add($i18n->get('error.uncompleted_exists')." <a href = 'time_edit.php?id=".$not_completed_rec['id']."'>".$i18n->get('error.goto_uncompleted')."</a>");
+        }
+      }
+    }
+
+    // Prohibit creating an overlapping record.
+    if ($err->no()) {
+      if (ttTimeHelper::overlaps($user_id, $new_date->toString(DB_DATEFORMAT), $cl_start, $cl_finish))
+        $err->add($i18n->get('error.overlap'));
+    }
+
+    // Now, a new insert.
+    if ($err->no()) {
+
+      $id = ttTimeHelper::insert(array(
+        'date'=>$new_date->toString(DB_DATEFORMAT),
+        'user_id'=>$user_id,
+        'group_id'=>$user->getGroup(),
+        'org_id' => $user->org_id,
+        'client'=>$cl_client,
+        'project'=>$cl_project,
+        'task'=>$cl_task,
+        'start'=>$cl_start,
+        'finish'=>$cl_finish,
+        'duration'=>$cl_duration,
+        'note'=>$cl_note,
+        'billable'=>$cl_billable,
+        'paid'=>$cl_paid));
+
+      // Insert a custom field if we have it.
+      $res = true;
+      if ($id && $custom_fields && $cl_cf_1) {
+        if ($custom_fields->fields[0]['type'] == CustomFields::TYPE_TEXT)
+          $res = $custom_fields->insert($id, $custom_fields->fields[0]['id'], null, $cl_cf_1);
+        elseif ($custom_fields->fields[0]['type'] == CustomFields::TYPE_DROPDOWN)
+          $res = $custom_fields->insert($id, $custom_fields->fields[0]['id'], $cl_cf_1, null);
+      }
+      if ($id && $res) {
+        header('Location: time.php?date='.$new_date->toString(DB_DATEFORMAT));
+        exit();
+      }
+      $err->add($i18n->get('error.db'));
+    }
+  }
+
   if ($request->getParameter('btn_delete')) {
     header("Location: time_delete.php?id=$cl_id");
     exit();
   }
 } // isPost
 
+if ($confirm_save) {
+  $smarty->assign('confirm_save', true);
+  $smarty->assign('entry_date', $cl_date);
+}
 $smarty->assign('client_list', $client_list);
 $smarty->assign('project_list', $project_list);
 $smarty->assign('task_list', $task_list);

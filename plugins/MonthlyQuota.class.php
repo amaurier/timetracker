@@ -33,20 +33,23 @@ class MonthlyQuota {
 
   var $db;       // Database connection.
   var $group_id; // Group id.
+  var $org_id;   // Organization id.
 
   function __construct() {
     $this->db = getConnection();
     global $user;
-    $this->group_id = $user->group_id;
+    $this->group_id = $user->getGroup();
+    $this->org_id = $user->org_id;
   }
 
   // update - deletes a quota, then inserts a new one.
   public function update($year, $month, $minutes) {
-    $group_id = $this->group_id;
-    $deleteSql = "DELETE FROM tt_monthly_quotas WHERE year = $year AND month = $month AND group_id = $group_id";
+    $deleteSql = "delete from tt_monthly_quotas".
+      " where year = $year and month = $month and group_id = $this->group_id and org_id = $this->org_id";
     $this->db->exec($deleteSql);
     if ($minutes){
-      $insertSql = "INSERT INTO tt_monthly_quotas (group_id, year, month, minutes) values ($group_id, $year, $month, $minutes)";
+      $insertSql = "insert into tt_monthly_quotas (group_id, org_id, year, month, minutes)".
+        " values ($this->group_id, $this->org_id, $year, $month, $minutes)";
       $affected = $this->db->exec($insertSql);
       return (!is_a($affected, 'PEAR_Error'));
     }
@@ -64,8 +67,8 @@ class MonthlyQuota {
 
   // getSingle - obtains a quota for a single month.
   private function getSingle($year, $month) {
-    $group_id = $this->group_id;
-    $sql = "SELECT minutes FROM tt_monthly_quotas WHERE year = $year AND month = $month AND group_id = $group_id";
+    $sql = "select minutes from tt_monthly_quotas".
+      " where year = $year and month = $month and group_id = $this->group_id and org_id = $this->org_id";
     $reader = $this->db->query($sql);
     if (is_a($reader, 'PEAR_Error')) {
       return false;
@@ -78,13 +81,42 @@ class MonthlyQuota {
     // If we did not find a record, return a calculated monthly quota.
     $numWorkdays = $this->getNumWorkdays($month, $year);
     global $user;
-    return $numWorkdays * $user->workday_minutes;
+    return $numWorkdays * $user->getWorkdayMinutes();
+  }
+
+  // getUserQuota - obtains a quota for user for a single month.
+  // This quota is adjusted by quota_percent value for user.
+  public function getUserQuota($year, $month) {
+    global $user;
+
+    $minutes = $this->getSingle($year, $month);
+    $userMinutes = (int) $minutes * $user->getQuotaPercent() / 100;
+    return $userMinutes;
+  }
+
+  // getUserQuotaFrom1st - obtains a quota for user
+  // from 1st of the month up to and inclusive of $selected_date.
+  public function getUserQuotaFrom1st($selected_date) {
+    // TODO: we may need a better algorithm here. Review.
+    $monthQuotaMinutes = $this->getUserQuota($selected_date->mYear, $selected_date->mMonth);
+    $workdaysInMonth = $this->getNumWorkdays($selected_date->mMonth, $selected_date->mYear);
+
+    // Iterate from 1st up to selected date.
+    $workdaysFrom1st = 0;
+    for ($i = 1; $i <= $selected_date->mDate; $i++) {
+      $date = "$selected_date->mYear-$selected_date->mMonth-$i";
+      if (!ttTimeHelper::isWeekend($date) && !ttTimeHelper::isHoliday($date)) {
+        $workdaysFrom1st++;
+      }
+    }
+    $quotaMinutesFrom1st = (int) ($monthQuotaMinutes * $workdaysFrom1st / $workdaysInMonth);
+    return $quotaMinutesFrom1st;
   }
 
   // getMany - returns an array of quotas for a given year for group.
   private function getMany($year){
-    $group_id = $this->group_id;
-    $sql = "SELECT month, minutes FROM tt_monthly_quotas WHERE year = $year AND group_id = $group_id";
+    $sql = "select month, minutes from tt_monthly_quotas".
+      " where year = $year and group_id = $this->group_id and org_id = $this->org_id";
     $result = array();
     $res = $this->db->query($sql);
     if (is_a($res, 'PEAR_Error')) {
@@ -128,7 +160,7 @@ class MonthlyQuota {
     }
 
     global $user;
-    $localizedPattern = '/^([0-9]{1,3})?['.$user->decimal_mark.'][0-9]{1,4}h?$/';
+    $localizedPattern = '/^([0-9]{1,3})?['.$user->getDecimalMark().'][0-9]{1,4}h?$/';
     if (preg_match($localizedPattern, $value )) { // decimal values like 000.5, 999.25h, ... .. 999.9999h (or with comma)
       return true;
     }
@@ -149,11 +181,11 @@ class MonthlyQuota {
     }
 
     global $user;
-    $localizedPattern = '/^([0-9]{1,3})?['.$user->decimal_mark.'][0-9]{1,4}h?$/';
+    $localizedPattern = '/^([0-9]{1,3})?['.$user->getDecimalMark().'][0-9]{1,4}h?$/';
     if (preg_match($localizedPattern, $value )) { // decimal values like 000.5, 999.25h, ... .. 999.9999h (or with comma)
       // Strip optional h in the end.
       $value = trim($value, 'h');
-      if ($user->decimal_mark == ',')
+      if ($user->getDecimalMark() == ',')
         $value = str_replace(',', '.', $value);
       return (float) $value;
     }

@@ -29,21 +29,22 @@
 require_once('../initialize.php');
 import('form.Form');
 import('ttTeamHelper');
+import('ttGroupHelper');
 
 // Access checks.
 if (!(ttAccessAllowed('view_own_projects') || ttAccessAllowed('manage_projects'))) {
   header('Location: access_denied.php');
   exit();
 }
-if (MODE_PROJECTS != $user->tracking_mode && MODE_PROJECTS_AND_TASKS != $user->tracking_mode) {
+if (MODE_PROJECTS != $user->getTrackingMode() && MODE_PROJECTS_AND_TASKS != $user->getTrackingMode()) {
   header('Location: feature_disabled.php');
   exit();
 }
 // End of access checks.
 
 if($user->can('manage_projects')) {
-  $active_projects = ttTeamHelper::getActiveProjects($user->group_id);
-  $inactive_projects = ttTeamHelper::getInactiveProjects($user->group_id);
+  $active_projects = ttGroupHelper::getActiveProjects();
+  $inactive_projects = ttGroupHelper::getInactiveProjects();
 } else
   $active_projects = $user->getAssignedProjects();
 

@@ -28,26 +28,25 @@
 
 require_once('initialize.php');
 import('form.Form');
-import('ttAdmin');
+import('ttGroupHelper');
 
 // Access checks.
-if (!ttAccessAllowed('delete_group')) {
-  header('Location: access_denied.php');
+if (!(ttAccessAllowed('delete_group') || ttAccessAllowed('manage_subgroups'))) {
+  header('Location: access_denied.php'); // No rights.
   exit();
 }
 $group_id = (int)$request->getParameter('id');
-if ($user->group_id != $group_id) {
-  header('Location: access_denied.php');
+if (!$user->isGroupValid($group_id)) {
+  header('Location: access_denied.php'); // Wrong group id.
+  exit();
+}
+if ($group_id == $user->group_id && !$user->can('delete_group')) {
+  header('Location: access_denied.php'); // Trying to delete home group without right.
   exit();
 }
 // End of access checks.
 
-// Note: reuse ttAdmin class here because deleting a group is a complicated task.
-// This creates an issue of using the class for not intended purpose.
-// However, otherwise we have to duplicate code, so reuse it is, for now.
-$admin = new ttAdmin();
-$group_details = $admin->getGroupDetails($group_id);
-$group_name = $group_details['group_name'];
+$group_name = ttGroupHelper::getGroupName($group_id);
 
 $form = new Form('groupForm');
 $form->addInput(array('type'=>'hidden','name'=>'id','value'=>$group_id));
@@ -56,18 +55,33 @@ $form->addInput(array('type'=>'submit','name'=>'btn_cancel','value'=>$i18n->get(
 
 if ($request->isPost()) {
   if ($request->getParameter('btn_delete')) {
-    if ($admin->markGroupDeleted($group_id)) {
-      $auth->doLogout();
-      session_unset();
-      header('Location: login.php');
-      exit();
+    $markedDeleted = ttGroupHelper::markGroupDeleted($group_id);
+    if ($markedDeleted) {
+      if ($group_id == $user->group_id) {
+        // We marked deleted our own group. Logout and redirect to login page.
+        $auth->doLogout();
+        session_unset();
+        header('Location: login.php');
+        exit();
+      } else {
+        // We marked deleted a subgroup.
+        if ($user->behalfGroup && $user->behalfGroup->id == $group_id)
+          $user->setOnBehalfGroup($user->group_id); // Remove on behalf group from session.
+        header('Location: success.php');
+        exit();
+      }
     } else
       $err->add($i18n->get('error.db'));
   }
 
   if ($request->getParameter('btn_cancel')) {
-    header('Location: group_edit.php');
-    exit();
+    if ($group_id == $user->group_id) {
+      header('Location: group_edit.php');
+      exit();
+    } else {
+      header('Location: groups.php');
+      exit();
+    }
   }
 } // isPost
 

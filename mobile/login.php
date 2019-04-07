@@ -28,7 +28,7 @@
 
 require_once('../initialize.php');
 import('form.Form');
-import('ttGroupHelper');
+import('ttOrgHelper');
 import('ttUser');
 
 if ($request->isPost()) {
@@ -52,7 +52,7 @@ if ($request->isPost()) {
   if ($err->no()) {
 
     // Use the "limit" plugin if we have one. Ignore include errors.
-    // The "limit" plugin is not required for normal operation of the Time Tracker.
+    // The "limit" plugin is not required for normal operation of Time Tracker.
     @include('../plugins/limit/access_check.php');
 
     if ($auth->doLogin($cl_login, $cl_password)) {
@@ -80,7 +80,7 @@ if ($request->isPost()) {
   }
 } // isPost
 
-if(!isTrue(MULTITEAM_MODE) && !ttGroupHelper::getTopGroups())
+if(!isTrue('MULTITEAM_MODE') && !ttOrgHelper::getOrgs())
   $err->add($i18n->get('error.no_groups'));
 
 // Determine whether to show login hint. It is currently used only for Windows LDAP authentication.

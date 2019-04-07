@@ -28,7 +28,7 @@
 
 require_once('initialize.php');
 import('form.Form');
-import('ttTeamHelper');
+import('ttGroupHelper');
 
 // Access checks.
 if (!ttAccessAllowed('manage_advanced_settings')) {
@@ -39,6 +39,14 @@ if (!$user->isPluginEnabled('no')) {
   header('Location: feature_disabled.php');
   exit();
 }
+if (!$user->exists()) {
+  header('Location: access_denied.php'); // No users in subgroup.
+  exit();
+}
+// End of access checks.
+
+// TODO: extend and re-design notifications.
+// Currently they only work with fav reports, which are bound to users.
 
 $form = new Form('notificationsForm');
 
@@ -50,7 +58,7 @@ if ($request->isPost()) {
   }
 } else {
   $form->addInput(array('type'=>'submit','name'=>'btn_add','value'=>$i18n->get('button.add')));
-  $notifications = ttTeamHelper::getNotifications($user->group_id);
+  $notifications = ttGroupHelper::getNotifications();
 }
 
 $smarty->assign('forms', array($form->getName()=>$form->toArray()));

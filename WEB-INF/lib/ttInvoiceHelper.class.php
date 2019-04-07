@@ -32,46 +32,18 @@ import('DateAndTime');
 // Class ttInvoiceHelper is used for help with invoices.
 class ttInvoiceHelper {
 
-  // insert - inserts an invoice in database.
-  static function insert($fields)
-  {
-    $mdb2 = getConnection();
-
-    $group_id = (int) $fields['group_id'];
-    $name = $fields['name'];
-    if (!$name) return false;
-
-    $client_id = (int) $fields['client_id'];
-    $date = $fields['date'];
-    if (array_key_exists('status', $fields)) { // Key exists and may be NULL during migration of data.
-      $status_f = ', status';
-      $status_v = ', '.$mdb2->quote($fields['status']);
-    }
-
-    // Insert a new invoice record.
-    $sql = "insert into tt_invoices (group_id, name, date, client_id $status_f)".
-      " values($group_id, ".$mdb2->quote($name).", ".$mdb2->quote($date).", $client_id $status_v)";
-    $affected = $mdb2->exec($sql);
-
-    if (is_a($affected, 'PEAR_Error')) return false;
-
-    $last_id = 0;
-    $sql = "select last_insert_id() as last_insert_id";
-    $res = $mdb2->query($sql);
-    $val = $res->fetchRow();
-    $last_id = $val['last_insert_id'];
-
-    return $last_id;
-  }
-
   // getInvoice - obtains invoice data from the database.
   static function getInvoice($invoice_id) {
     global $user;
     $mdb2 = getConnection();
 
-    if ($user->isClient()) $client_part = " and client_id = $user->client_id";
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
 
-    $sql = "select * from tt_invoices where id = $invoice_id and group_id = $user->group_id $client_part and status = 1";
+    if ($user->isClient()) $client_part = "and client_id = $user->client_id";
+
+    $sql = "select * from tt_invoices".
+      " where id = $invoice_id and group_id = $group_id and org_id = $org_id $client_part and status = 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       if ($val = $res->fetchRow())
@@ -82,11 +54,14 @@ class ttInvoiceHelper {
 
   // The getInvoiceByName looks up an invoice by name.
   static function getInvoiceByName($invoice_name) {
-
-    $mdb2 = getConnection();
     global $user;
+    $mdb2 = getConnection();
 
-    $sql = "select id from tt_invoices where group_id = $user->group_id and name = ".$mdb2->quote($invoice_name)." and status = 1";
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $sql = "select id from tt_invoices where group_id = $group_id and org_id = $org_id".
+      " and name = ".$mdb2->quote($invoice_name)." and status = 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       $val = $res->fetchRow();
@@ -102,18 +77,22 @@ class ttInvoiceHelper {
   // Therefore, the paid status of the invoice is a calculated value.
   // This is because we maintain the paid status on individual item level.
   static function isPaid($invoice_id) {
-
-    $mdb2 = getConnection();
     global $user;
+    $mdb2 = getConnection();
 
-    $sql = "select count(*) as count from tt_log where invoice_id = $invoice_id and status = 1 and paid < 1";
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
+    $sql = "select count(*) as count from tt_log".
+      " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id and status = 1 and paid < 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       $val = $res->fetchRow();
       if ($val['count'] > 0)
         return false; // A non-paid time item exists.
     }
-    $sql = "select count(*) as count from tt_expense_items where invoice_id = $invoice_id and status = 1 and paid < 1";
+    $sql = "select count(*) as count from tt_expense_items".
+      " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id and status = 1 and paid < 1";
     $res = $mdb2->query($sql);
     if (!is_a($res, 'PEAR_Error')) {
       $val = $res->fetchRow();
@@ -127,16 +106,20 @@ class ttInvoiceHelper {
 
   // markPaid marks invoice items as paid.
   static function markPaid($invoice_id, $mark_paid = true) {
-
     global $user;
     $mdb2 = getConnection();
 
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     $paid_status = $mark_paid ? 1 : 0;
-    $sql = "update tt_log set paid = $paid_status where invoice_id = $invoice_id and status = 1";
+    $sql = "update tt_log set paid = $paid_status".
+      " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id and status = 1";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error')) return false;
 
-    $sql = "update tt_expense_items set paid = $paid_status where invoice_id = $invoice_id and status = 1";
+    $sql = "update tt_expense_items set paid = $paid_status".
+      " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id and status = 1";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error')) return false;
 
@@ -148,43 +131,46 @@ class ttInvoiceHelper {
     global $user;
     $mdb2 = getConnection();
 
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     // At this time only detailed invoice is supported.
     // It is anticipated to support "totals only" option later on.
 
     // Our query is different depending on tracking mode.
-    if (MODE_TIME == $user->tracking_mode) {
+    if (MODE_TIME == $user->getTrackingMode()) {
       // In "time only" tracking mode there is a single user rate.
-      $sql = "select l.date as date, 1 as type, u.name as user_name, p.name as project_name,
-      t.name as task_name, l.comment as note,
-      time_format(l.duration, '%k:%i') as duration,
-      cast(l.billable * u.rate * time_to_sec(l.duration)/3600 as decimal(10, 2)) as cost,
-      l.paid as paid from tt_log l
-      inner join tt_users u on (l.user_id = u.id)
-      left join tt_projects p on (p.id = l.project_id)
-      left join tt_tasks t on (t.id = l.task_id)
-      where l.status = 1 and l.billable = 1 and l.invoice_id = $invoice_id order by l.date, u.name";
+      $sql = "select l.date as date, 1 as type, u.name as user_name, p.name as project_name,".
+        " t.name as task_name, l.comment as note, time_format(l.duration, '%k:%i') as duration,".
+        " cast(l.billable * u.rate * time_to_sec(l.duration)/3600 as decimal(10, 2)) as cost,".
+        " l.paid as paid from tt_log l".
+        " inner join tt_users u on (l.user_id = u.id)".
+        " left join tt_projects p on (p.id = l.project_id)".
+        " left join tt_tasks t on (t.id = l.task_id)".
+        " where l.status = 1 and l.billable = 1 and l.invoice_id = $invoice_id".
+        " and l.group_id = $group_id and l.org_id = $org_id order by l.date, u.name";
     } else {
-      $sql = "select l.date as date, 1 as type, u.name as user_name, p.name as project_name,
-        t.name as task_name, l.comment as note,
-        time_format(l.duration, '%k:%i') as duration,
-        cast(l.billable * coalesce(upb.rate, 0) * time_to_sec(l.duration)/3600 as decimal(10, 2)) as cost,
-        l.paid as paid from tt_log l
-        inner join tt_users u on (l.user_id = u.id)
-        left join tt_projects p on (p.id = l.project_id)
-        left join tt_tasks t on (t.id = l.task_id)
-        left join tt_user_project_binds upb on (upb.user_id = l.user_id and upb.project_id = l.project_id)
-        where l.status = 1 and l.billable = 1 and l.invoice_id = $invoice_id order by l.date, u.name";
+      $sql = "select l.date as date, 1 as type, u.name as user_name, p.name as project_name,".
+        " t.name as task_name, l.comment as note, time_format(l.duration, '%k:%i') as duration,".
+        " cast(l.billable * coalesce(upb.rate, 0) * time_to_sec(l.duration)/3600 as decimal(10, 2)) as cost,".
+        " l.paid as paid from tt_log l".
+        " inner join tt_users u on (l.user_id = u.id)".
+        " left join tt_projects p on (p.id = l.project_id)".
+        " left join tt_tasks t on (t.id = l.task_id)".
+        " left join tt_user_project_binds upb on (upb.user_id = l.user_id and upb.project_id = l.project_id)".
+        " where l.status = 1 and l.billable = 1 and l.invoice_id = $invoice_id".
+        " and l.group_id = $group_id and l.org_id = $org_id order by l.date, u.name";
     }
 
     // If we have expenses, we need to do a union with a separate query for expense items from tt_expense_items table.
     if ($user->isPluginEnabled('ex')) {
-      $sql_for_expense_items = "select ei.date as date, 2 as type, u.name as user_name, p.name as project_name,
-        null as task_name, ei.name as note,
-        null as duration, ei.cost as cost,
-        ei.paid as paid from tt_expense_items ei
-        inner join tt_users u on (ei.user_id = u.id)
-        left join tt_projects p on (p.id = ei.project_id)
-        where ei.invoice_id = $invoice_id and ei.status = 1";
+      $sql_for_expense_items = "select ei.date as date, 2 as type, u.name as user_name, p.name as project_name,".
+        " null as task_name, ei.name as note,".
+        " null as duration, ei.cost as cost,".
+        " ei.paid as paid from tt_expense_items ei".
+        " inner join tt_users u on (ei.user_id = u.id)".
+        " left join tt_projects p on (p.id = ei.project_id)".
+        " where ei.invoice_id = $invoice_id and ei.group_id = $group_id and ei.org_id = $org_id and ei.status = 1";
 
       // Construct a union.
       $sql = "($sql) union all ($sql_for_expense_items)";
@@ -198,7 +184,7 @@ class ttInvoiceHelper {
       $dt = new DateAndTime(DB_DATEFORMAT);
       while ($val = $res->fetchRow()) {
         $dt->parseVal($val['date']);
-        $val['date'] = $dt->toString($user->date_format);
+        $val['date'] = $dt->toString($user->getDateFormat());
         $result[] = $val;
       }
     }
@@ -210,39 +196,53 @@ class ttInvoiceHelper {
     global $user;
     $mdb2 = getConnection();
 
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
+
     // Handle custom field log records.
     if ($delete_invoice_items) {
-      $sql = "update tt_custom_field_log set status = NULL where log_id in (select id from tt_log where invoice_id = $invoice_id and status = 1)";
+      $sql = "update tt_custom_field_log set status = null".
+        " where log_id in".
+        " (select id from tt_log where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id and status = 1)";
       $affected = $mdb2->exec($sql);
       if (is_a($affected, 'PEAR_Error')) return false;
     }
 
     // Handle time records.
-    if ($delete_invoice_items)
-      $sql = "update tt_log set status = NULL where invoice_id = $invoice_id";
-    else
-      $sql = "update tt_log set invoice_id = NULL where invoice_id = $invoice_id";
+    if ($delete_invoice_items) {
+      $sql = "update tt_log set status = null".
+        " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id";
+    } else {
+      $sql = "update tt_log set invoice_id = null".
+        " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id";
+    }
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error')) return false;
 
     // Handle expense items.
-    if ($delete_invoice_items)
-      $sql = "update tt_expense_items set status = NULL where invoice_id = $invoice_id";
-    else
-      $sql = "update tt_expense_items set invoice_id = NULL where invoice_id = $invoice_id";
+    if ($delete_invoice_items) {
+      $sql = "update tt_expense_items set status = null".
+        " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id";
+    } else {
+      $sql = "update tt_expense_items set invoice_id = null".
+        " where invoice_id = $invoice_id and group_id = $group_id and org_id = $org_id";
+    }
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error')) return false;
 
-    $sql = "update tt_invoices set status = NULL where id = $invoice_id and group_id = $user->group_id";
+    $sql = "update tt_invoices set status = null".
+      " where id = $invoice_id and group_id = $group_id and org_id = $org_id";
     $affected = $mdb2->exec($sql);
     return (!is_a($affected, 'PEAR_Error'));
   }
 
   // The invoiceableItemsExist determines whether invoiceable records exist in the specified period.
   static function invoiceableItemsExist($fields) {
-
-    $mdb2 = getConnection();
     global $user;
+    $mdb2 = getConnection();
+
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
 
     $client_id = (int) $fields['client_id'];
 
@@ -255,23 +255,24 @@ class ttInvoiceHelper {
     if (isset($fields['project_id'])) $project_id = (int) $fields['project_id'];
 
     // Our query is different depending on tracking mode.
-    if (MODE_TIME == $user->tracking_mode) {
+    if (MODE_TIME == $user->getTrackingMode()) {
       // In "time only" tracking mode there is a single user rate.
-      $sql = "select count(*) as num from tt_log l, tt_users u
-        where l.status = 1 and l.client_id = $client_id and l.invoice_id is NULL
-        and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end)."
-        and l.user_id = u.id
-        and l.billable = 1"; // l.billable * u.rate * time_to_sec(l.duration)/3600 > 0 // See explanation below.
+      $sql = "select count(*) as num from tt_log l, tt_users u".
+        " where l.status = 1 and l.client_id = $client_id and l.invoice_id is null".
+        " and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end).
+        " and l.user_id = u.id and l.group_id = $group_id and l.org_id = $org_id".
+        " and l.billable = 1"; // l.billable * u.rate * time_to_sec(l.duration)/3600 > 0 // See explanation below.
     } else {
       // sql part for project id.
       if ($project_id) $project_part = " and l.project_id = $project_id";
 
       // When we have projects, rates are defined for each project in tt_user_project_binds table.
-      $sql = "select count(*) as num from tt_log l, tt_user_project_binds upb
-        where l.status = 1 and l.client_id = $client_id $project_part and l.invoice_id is NULL
-        and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end)."
-        and upb.user_id = l.user_id and upb.project_id = l.project_id
-        and l.billable = 1"; // l.billable * upb.rate * time_to_sec(l.duration)/3600 > 0
+      $sql = "select count(*) as num from tt_log l, tt_user_project_binds upb".
+        " where l.status = 1 and l.client_id = $client_id $project_part and l.invoice_id is null".
+        " and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end).
+        " and l.group_id = $group_id and l.org_id = $org_id".
+        " and upb.user_id = l.user_id and upb.project_id = l.project_id".
+        " and l.billable = 1"; // l.billable * upb.rate * time_to_sec(l.duration)/3600 > 0
         // Users with a lot of clients and projects (Jaro) may forget to set user rates properly.
         // Specifically, user rate may be set to 0 on a project, by mistake. This leads to error.no_invoiceable_items
         // and increased support cost. Commenting out allows us to include 0 cost items in invoices so that
@@ -287,18 +288,21 @@ class ttInvoiceHelper {
       }
     }
 
-    // sql part for project id.
-    if ($project_id) $project_part = " and ei.project_id = $project_id";
+    if ($user->isPluginEnabled('ex')) {
+      // sql part for project id.
+      if ($project_id) $project_part = " and ei.project_id = $project_id";
 
-    $sql = "select count(*) as num from tt_expense_items ei
-      where ei.client_id = $client_id $project_part and ei.invoice_id is NULL
-      and ei.date >= ".$mdb2->quote($start)." and ei.date <= ".$mdb2->quote($end)."
-      and ei.cost <> 0 and ei.status = 1";
-    $res = $mdb2->query($sql);
-    if (!is_a($res, 'PEAR_Error')) {
-      $val = $res->fetchRow();
-      if ($val['num']) {
-        return true;
+      $sql = "select count(*) as num from tt_expense_items ei".
+        " where ei.client_id = $client_id $project_part and ei.invoice_id is null".
+        " and ei.date >= ".$mdb2->quote($start)." and ei.date <= ".$mdb2->quote($end).
+        " and ei.group_id = $group_id and ei.org_id = $org_id".
+        " and ei.cost <> 0 and ei.status = 1";
+      $res = $mdb2->query($sql);
+      if (!is_a($res, 'PEAR_Error')) {
+        $val = $res->fetchRow();
+        if ($val['num']) {
+          return true;
+        }
       }
     }
 
@@ -307,9 +311,11 @@ class ttInvoiceHelper {
 
   // createInvoice - marks items for invoice as belonging to it (with its reference number).
   static function createInvoice($fields) {
-
-    $mdb2 = getConnection();
     global $user;
+    $mdb2 = getConnection();
+
+    $group_id = $user->getGroup();
+    $org_id = $user->org_id;
 
     $name = $fields['name'];
     if (!$name) return false;
@@ -328,38 +334,36 @@ class ttInvoiceHelper {
     if (isset($fields['project_id'])) $project_id = (int) $fields['project_id'];
 
     // Create a new invoice record.
-    $sql = "insert into tt_invoices (group_id, name, date, client_id)
-      values($user->group_id, ".$mdb2->quote($name).", ".$mdb2->quote($date).", $client_id)";
+    $sql = "insert into tt_invoices (group_id, org_id, name, date, client_id)".
+      " values($group_id, $org_id, ".$mdb2->quote($name).", ".$mdb2->quote($date).", $client_id)";
     $affected = $mdb2->exec($sql);
     if (is_a($affected, 'PEAR_Error')) return false;
 
     // Mark associated invoice items with invoice id.
-    $last_id = 0;
-    $sql = "select last_insert_id() as last_insert_id";
-    $res = $mdb2->query($sql);
-    $val = $res->fetchRow();
-    $last_id = $val['last_insert_id'];
+    $last_id = $mdb2->lastInsertID('tt_invoices', 'id');
 
     // Our update sql is different depending on tracking mode.
-    if (MODE_TIME == $user->tracking_mode) {
+    if (MODE_TIME == $user->getTrackingMode()) {
       // In "time only" tracking mode there is a single user rate.
-      $sql = "update tt_log l
-        left join tt_users u on (u.id = l.user_id)
-        set l.invoice_id = $last_id
-        where l.status = 1 and l.client_id = $client_id and l.invoice_id is NULL
-        and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end)."
-        and l.billable = 1"; // l.billable * u.rate * time_to_sec(l.duration)/3600 > 0"; // See explanation below.
+      $sql = "update tt_log l".
+        " left join tt_users u on (u.id = l.user_id)".
+        " set l.invoice_id = $last_id".
+        " where l.status = 1 and l.client_id = $client_id and l.invoice_id is null".
+        " and l.group_id = $group_id and l.org_id = $org_id".
+        " and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end).
+        " and l.duration > 0 and l.billable = 1"; // l.billable * u.rate * time_to_sec(l.duration)/3600 > 0"; // See explanation below.
     } else {
        // sql part for project id.
       if ($project_id) $project_part = " and l.project_id = $project_id";
 
       // When we have projects, rates are defined for each project in tt_user_project_binds.
-      $sql = "update tt_log l
-        left join tt_user_project_binds upb on (upb.user_id = l.user_id and upb.project_id = l.project_id)
-        set l.invoice_id = $last_id
-        where l.status = 1 and l.client_id = $client_id $project_part and l.invoice_id is NULL
-        and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end)."
-        and l.billable = 1"; //  l.billable * upb.rate * time_to_sec(l.duration)/3600 > 0";
+      $sql = "update tt_log l".
+        " left join tt_user_project_binds upb on (upb.user_id = l.user_id and upb.project_id = l.project_id)".
+        " set l.invoice_id = $last_id".
+        " where l.status = 1 and l.client_id = $client_id $project_part and l.invoice_id is null".
+        " and l.group_id = $group_id and l.org_id = $org_id".
+        " and l.date >= ".$mdb2->quote($start)." and l.date <= ".$mdb2->quote($end).
+        " and l.duration > 0 and l.billable = 1"; //  l.billable * upb.rate * time_to_sec(l.duration)/3600 > 0";
         // Users with a lot of clients and projects (Jaro) may forget to set user rates properly.
         // Specifically, user rate may be set to 0 on a project, by mistake. This leads to error.no_invoiceable_items
         // and increased support cost. Commenting out allows us to include 0 cost items in invoices so that
@@ -374,8 +378,10 @@ class ttInvoiceHelper {
     // sql part for project id.
     if ($project_id) $project_part = " and project_id = $project_id";
 
-    $sql = "update tt_expense_items set invoice_id = $last_id where client_id = $client_id $project_part and invoice_id is NULL
-      and date >= ".$mdb2->quote($start)." and date <= ".$mdb2->quote($end)." and cost <> 0 and status = 1";
+    $sql = "update tt_expense_items set invoice_id = $last_id".
+      " where client_id = $client_id $project_part and invoice_id is null".
+      " and group_id = $group_id and org_id = $org_id".
+      " and date >= ".$mdb2->quote($start)." and date <= ".$mdb2->quote($end)." and cost <> 0 and status = 1";
     $affected = $mdb2->exec($sql);
     return (!is_a($affected, 'PEAR_Error'));
   }
@@ -385,6 +391,9 @@ class ttInvoiceHelper {
   {
     global $user;
     global $i18n;
+
+    $currency = $user->getCurrency();
+    $decimalMark = $user->getDecimalMark();
 
     $invoice = ttInvoiceHelper::getInvoice($invoice_id);
     $client = ttClientHelper::getClient($invoice['client_id'], true);
@@ -406,13 +415,13 @@ class ttInvoiceHelper {
     }
     $total = $subtotal + $tax;
 
-    $subtotal = htmlspecialchars($user->currency).' '.str_replace('.', $user->decimal_mark, sprintf('%8.2f', round($subtotal, 2)));
-    if ($tax) $tax = htmlspecialchars($user->currency).' '.str_replace('.', $user->decimal_mark, sprintf('%8.2f', round($tax, 2)));
-    $total = htmlspecialchars($user->currency).' '.str_replace('.', $user->decimal_mark, sprintf('%8.2f', round($total, 2)));
+    $subtotal = htmlspecialchars($currency).' '.str_replace('.', $decimalMark, sprintf('%8.2f', round($subtotal, 2)));
+    if ($tax) $tax = htmlspecialchars($currency).' '.str_replace('.', $decimalMark, sprintf('%8.2f', round($tax, 2)));
+    $total = htmlspecialchars($currency).' '.str_replace('.', $decimalMark, sprintf('%8.2f', round($total, 2)));
 
-    if ('.' != $user->decimal_mark) {
+    if ('.' != $decimalMark) {
       foreach ($invoice_items as &$item) {
-        $item['cost'] = str_replace('.', $user->decimal_mark, $item['cost']);
+        $item['cost'] = str_replace('.', $decimalMark, $item['cost']);
       }
       unset($item); // Unset the reference. If we don't, the foreach loop below modifies the array while printing.
                     // See http://stackoverflow.com/questions/8220399/php-foreach-pass-by-reference-last-element-duplicating-bug
@@ -422,6 +431,9 @@ class ttInvoiceHelper {
     $style_title = 'text-align: center; font-size: 15pt; font-family: Arial, Helvetica, sans-serif;';
     $style_tableHeader = 'font-weight: bold; background-color: #a6ccf7; text-align: left;';
     $style_tableHeaderCentered = 'font-weight: bold; background-color: #a6ccf7; text-align: center;';
+
+    // Determine tracking mode once for multiple reuse below.
+    $trackingMode = $user->getTrackingMode();
 
     // Start creating email body.
     $body = '<html>';
@@ -448,9 +460,9 @@ class ttInvoiceHelper {
     $body .= '<tr>';
     $body .= '<td style="'.$style_tableHeader.'">'.$i18n->get('label.date').'</td>';
     $body .= '<td style="'.$style_tableHeader.'">'.$i18n->get('form.invoice.person').'</td>';
-    if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->tracking_mode)
+    if (MODE_PROJECTS == $trackingMode || MODE_PROJECTS_AND_TASKS == $trackingMode)
       $body .= '<td style="'.$style_tableHeader.'">'.$i18n->get('label.project').'</td>';
-    if (MODE_PROJECTS_AND_TASKS == $user->tracking_mode)
+    if (MODE_PROJECTS_AND_TASKS == $trackingMode)
       $body .= '<td style="'.$style_tableHeader.'">'.$i18n->get('label.task').'</td>';
     $body .= '<td style="'.$style_tableHeader.'">'.$i18n->get('label.note').'</td>';
     $body .= '<td style="'.$style_tableHeaderCentered.'" width="5%">'.$i18n->get('label.duration').'</td>';
@@ -460,9 +472,9 @@ class ttInvoiceHelper {
       $body .= '<tr>';
       $body .= '<td>'.$item['date'].'</td>';
       $body .= '<td>'.htmlspecialchars($item['user_name']).'</td>';
-      if (MODE_PROJECTS == $user->tracking_mode || MODE_PROJECTS_AND_TASKS == $user->tracking_mode)
+      if (MODE_PROJECTS == $trackingMode || MODE_PROJECTS_AND_TASKS == $trackingMode)
         $body .= '<td>'.htmlspecialchars($item['project_name']).'</td>';
-      if (MODE_PROJECTS_AND_TASKS == $user->tracking_mode)
+      if (MODE_PROJECTS_AND_TASKS == $trackingMode)
         $body .= '<td>'.htmlspecialchars($item['task_name']).'</td>';
       $body .= '<td>'.htmlspecialchars($item['note']).'</td>';
       $body .= '<td align="right">'.$item['duration'].'</td>';
@@ -471,9 +483,9 @@ class ttInvoiceHelper {
     }
     // Output summary.
     $colspan = 4;
-    if (MODE_PROJECTS == $user->tracking_mode)
+    if (MODE_PROJECTS == $trackingMode)
       $colspan++;
-    elseif (MODE_PROJECTS_AND_TASKS == $user->tracking_mode)
+    elseif (MODE_PROJECTS_AND_TASKS == $trackingMode)
       $colspan += 2;
     $body .= '<tr><td>&nbsp;</td></tr>';
     if ($tax) {

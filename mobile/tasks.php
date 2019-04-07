@@ -28,22 +28,22 @@
 
 require_once('../initialize.php');
 import('form.Form');
-import('ttTeamHelper');
+import('ttGroupHelper');
 
 // Access checks.
 if (!(ttAccessAllowed('view_own_tasks') || ttAccessAllowed('manage_tasks'))) {
   header('Location: access_denied.php');
   exit();
 }
-if (MODE_PROJECTS_AND_TASKS != $user->tracking_mode) {
+if (MODE_PROJECTS_AND_TASKS != $user->getTrackingMode()) {
   header('Location: feature_disabled.php');
   exit();
 }
 // End of access checks.
 
 if($user->can('manage_tasks')) {
-  $active_tasks = ttTeamHelper::getActiveTasks($user->group_id);
-  $inactive_tasks = ttTeamHelper::getInactiveTasks($user->group_id);
+  $active_tasks = ttGroupHelper::getActiveTasks();
+  $inactive_tasks = ttGroupHelper::getInactiveTasks();
 } else
   $active_tasks = $user->getAssignedTasks();
 

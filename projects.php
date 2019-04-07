@@ -27,28 +27,30 @@
 // +----------------------------------------------------------------------+
 
 require_once('initialize.php');
-import('form.Form');
-import('ttTeamHelper');
+import('ttGroupHelper');
 
 // Access checks.
 if (!(ttAccessAllowed('view_own_projects') || ttAccessAllowed('manage_projects'))) {
   header('Location: access_denied.php');
   exit();
 }
-if (MODE_PROJECTS != $user->tracking_mode && MODE_PROJECTS_AND_TASKS != $user->tracking_mode) {
+if (MODE_PROJECTS != $user->getTrackingMode() && MODE_PROJECTS_AND_TASKS != $user->getTrackingMode()) {
   header('Location: feature_disabled.php');
   exit();
 }
 // End of access checks.
 
+$showFiles = $user->isPluginEnabled('at');
+
 if($user->can('manage_projects')) {
-  $active_projects = ttTeamHelper::getActiveProjects($user->group_id);
-  $inactive_projects = ttTeamHelper::getInactiveProjects($user->group_id);
+  $active_projects = $showFiles ? ttGroupHelper::getActiveProjectsWithFiles() : ttGroupHelper::getActiveProjects();
+  $inactive_projects = $showFiles ? ttGroupHelper::getInactiveProjectsWithFiles() : ttGroupHelper::getInactiveProjects();
 } else
   $active_projects = $user->getAssignedProjects();
 
 $smarty->assign('active_projects', $active_projects);
 $smarty->assign('inactive_projects', $inactive_projects);
+$smarty->assign('show_files', $user->isPluginEnabled('at'));
 $smarty->assign('title', $i18n->get('title.projects'));
 $smarty->assign('content_page_name', 'projects.tpl');
 $smarty->display('index.tpl');

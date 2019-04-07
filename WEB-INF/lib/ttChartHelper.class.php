@@ -77,7 +77,7 @@ class ttChartHelper {
         where l.status = 1 and l.duration > 0 and l.user_id = $user_id $q_period group by l.task_id";
     } elseif (CHART_CLIENTS == $chart_type) {
       // Data for clients.
-      $sql = "select coalesce(c.name, 'NULL') as name, sum(time_to_sec(l.duration)) as time from tt_log l
+      $sql = "select c.name as name, sum(time_to_sec(l.duration)) as time from tt_log l
         left join tt_clients c on (c.id = l.client_id)
         where l.status = 1 and l.duration > 0 and l.user_id = $user_id $q_period group by l.client_id";
     }
@@ -131,5 +131,40 @@ class ttChartHelper {
     }
 
     return $result;
+  }
+
+  // adjustType - adjust chart type to something that is available for a group.
+  static function adjustType($requested_type) {
+    global $user;
+    $tracking_mode = $user->getTrackingMode();
+    $client_option = $user->isPluginEnabled('cl');
+
+    // We have 3 possible options for chart tyep: projects, tasks, or clients.
+    // Deal with each one individually.
+
+    if ($requested_type == CHART_PROJECTS) {
+      if ($tracking_mode == MODE_PROJECTS || $tracking_mode == MODE_PROJECTS_AND_TASKS)
+        return CHART_PROJECTS;
+      else if ($client_option)
+        return CHART_CLIENTS;
+    }
+
+    if ($requested_type == CHART_TASKS) {
+      if ($tracking_mode == MODE_PROJECTS_AND_TASKS)
+        return CHART_TASKS;
+      if ($tracking_mode == MODE_PROJECTS)
+        return CHART_PROJECTS;
+      else if ($client_option)
+        return CHART_CLIENTS;
+    }
+
+    if ($requested_type == CHART_CLIENTS) {
+      if ($client_option)
+        return CHART_CLIENTS;
+      else if ($tracking_mode == MODE_PROJECTS || ($tracking_mode == MODE_PROJECTS_AND_TASKS))
+        return CHART_PROJECTS;
+    }
+
+    return  CHART_PROJECTS;
   }
 }

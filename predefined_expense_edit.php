@@ -39,14 +39,18 @@ if (!$user->isPluginEnabled('ex')) {
   header('Location: feature_disabled.php');
   exit();
 }
-
 $predefined_expense_id = (int) $request->getParameter('id');
+$predefined_expense = ttPredefinedExpenseHelper::get($predefined_expense_id);
+if (!$predefined_expense) {
+  header('Location: access_denied.php');
+  exit();
+}
+// End of access checks.
 
 if ($request->isPost()) {
   $cl_name = trim($request->getParameter('name'));
   $cl_cost = trim($request->getParameter('cost'));
 } else {
-  $predefined_expense = ttPredefinedExpenseHelper::get($predefined_expense_id);
   $cl_name = $predefined_expense['name'];
   $cl_cost = $predefined_expense['cost'];
 }
@@ -64,7 +68,6 @@ if ($request->isPost()) {
   if ($err->no()) {
     if (ttPredefinedExpenseHelper::update(array(
         'id' => $predefined_expense_id,
-        'group_id' => $user->group_id,
         'name' => $cl_name,
         'cost' => $cl_cost))) {
         header('Location: predefined_expenses.php');
